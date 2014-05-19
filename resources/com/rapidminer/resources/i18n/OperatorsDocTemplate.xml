@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1252" standalone="no"?>
+<operatorHelp lang="en_EN">
+    <!--  This is an example how to specify the description of operators and the translation of it's key identifier
+    to names. 
+
+   <operator>
+      <name>SingleTextInput</name>
+      <synopsis>Generates word vectors from a single text.</synopsis>
+      <help />
+   </operator>
+   <operator>
+      <name>TextObjectWriter</name>
+      <synopsis>Writes a textobject into a file.</synopsis>
+      <help>This operator writes a given textObject into a file. It might be specified if an existing file with the same name should be overwritten.</help>
+   </operator>
+
+    This is how group ids are translated:
+    
+   <group>
+      <key>text_processing</key>
+      <name>Text Processing</name>
+   </group>
+
+    -->
+   <operator>
+      <name>Name2Gender</name>
+      <synopsis>Infer the gender from international names.</synopsis>
+      <help>This operator infers the gender from international names (male/female), calling the GendRE API (Free or Freemium). Input: firstName, lastName and (optionally) a country Iso2 code. Output: genderScale [-1..0..+1=Female] and gender {Male,Female,Unknown}.</help>
+   </operator>
+    
+   <group>
+      <key>onomastics</key>
+      <name>Onomastics</name>
+   </group>
+
+</operatorHelp>

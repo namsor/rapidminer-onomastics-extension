@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<operators name="template" version="5.0" docbundle="com/rapidminer/resources/i18n/OperatorsDocTemplate">
+   <group key="">
+      <group key="onomastics">
+          <operator>
+            <key>Name2Gender</key>
+            <class>com.namsor.api.rapidminer.Name2GenderOperator</class>
+            <replaces>Name2Gender</replaces>
+         </operator>
+      </group>
+      <operator>
+        <!-- not sure why but without it RapidMiner complains -->
+      	<key>generate_extract</key>
+        <class>com.namsor.api.rapidminer.DummyOperator</class>
+        <replaces>Dummy</replaces>
+      </operator>
+   </group>
+</operators>
