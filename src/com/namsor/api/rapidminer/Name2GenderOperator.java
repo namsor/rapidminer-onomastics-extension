@@ -72,13 +72,13 @@ public class Name2GenderOperator extends Operator {
 		double threshold = getParameterAsDouble(ATTRIBUTE_THRESHOLD);
 
 		Attribute genderScaleAttribute = AttributeFactory.createAttribute(
-				ATTRIBUTE_GENDERSCALE, Ontology.REAL);
-		genderScaleAttribute.setTableIndex(fnAttribute.getTableIndex());
+				ATTRIBUTE_GENDERSCALE, Ontology.REAL);		
+		exampleSet.getExampleTable().addAttribute(genderScaleAttribute);
 		attributes.addRegular(genderScaleAttribute);
-
+		
 		Attribute genderAttribute = AttributeFactory.createAttribute(
 				ATTRIBUTE_GENDER, Ontology.STRING);
-		genderAttribute.setTableIndex(fnAttribute.getTableIndex());
+		exampleSet.getExampleTable().addAttribute(genderAttribute);
 		attributes.addRegular(genderAttribute);
 
 		for (Example example : exampleSet) {
