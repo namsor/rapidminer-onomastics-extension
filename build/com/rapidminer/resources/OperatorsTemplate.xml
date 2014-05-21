@@ -3,9 +3,9 @@
    <group key="">
       <group key="onomastics">
           <operator>
-            <key>Name2Gender</key>
-            <class>com.namsor.api.rapidminer.Name2GenderOperator</class>
-            <replaces>Name2Gender</replaces>
+            <key>GendRE Genderizer</key>
+            <class>com.namsor.api.rapidminer.GendREOperator</class>
+            <replaces>GendRE Genderizer</replaces>
          </operator>
       </group>
       <operator>

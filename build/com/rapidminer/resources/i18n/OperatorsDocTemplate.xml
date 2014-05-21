@@ -23,9 +23,14 @@
 
     -->
    <operator>
-      <name>Name2Gender</name>
-      <synopsis>Infer the gender from international names.</synopsis>
-      <help>This operator infers the gender from international names (male/female), calling the GendRE API (Free or Freemium). Input: firstName, lastName and (optionally) a country Iso2 code. Output: genderScale [-1..0..+1=Female] and gender {Male,Female,Unknown}.</help>
+      <name>GendRE Genderizer</name>
+      <synopsis>GendRE infers the gender from international names.</synopsis>
+      <help>
+          This operator infers the gender from international names (male/female), calling the GendRE API (Free or Freemium). 
+          Input: firstName, lastName and (optionally) a country Iso2 code, a batchId. 
+          Output: genderScale [-1..0..+1=Female] and gender {Male,Female,Unknown}.
+          GendRE can use both the firstName and lastName (ex. for Slavic names, to deambiguate names like Andrea male in Italy, female in the US).
+          More info on http://namsor.com/api</help>
    </operator>
     
    <group>
