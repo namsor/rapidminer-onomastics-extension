@@ -22,7 +22,7 @@ Can you guess the result of the following?
 api/json/gendre/בנימין/נתניהו/il 
 api/json/gendre/声涛/周
 api/json/gendre/معين/المرعبي/lb
-Currently, we require input names to be properly parsed into a (firstName, lastName) format and our machine learning algorithm will progressively discover how names are parsed in different cultures. When this calibration is complete, we'll offer an even simpler interface. 
+Currently, we require input names to be properly parsed into a (first_name, last_name) format and our machine learning algorithm will progressively discover how names are parsed in different cultures. When this calibration is complete, we'll offer an even simpler interface. 
 In RapidMiner, simply connect the Extract Gender operator in your process to infer the gender of a personal name and create new data/new segmentation.
 
 # Getting Started
@@ -44,13 +44,13 @@ Copy the Extension binary into RapidMiner extension directory. For example, on W
 C:\Program Files (x86)\Rapid-I\RapidMiner5\lib\plugins\rapidminer-NamSor-5.3.001.jar
 
 ## Create your first process
-Create a simple Excel document with columns firstName, lastName and a few contacts.
+Create a simple Excel document with columns first_name, last_name and a few contacts.
 Drag and drop the Read Excel operator (Import->Data->Read Excel) and launch the Import Configuration Wizard.
 Default values should be OK through the wizard, except Encoding should be set to UTF-8 (Unicode, especially required if you would like to genderize Chinese, Russian or Arabic names).
 
-Drag and drop the Extract Gender operator (Operators>Onomastics> Extract Gender) and connect it with the Excel file and a CSV exporter to view the results. 
+Drag and drop the Extract Gender operator (Operators>Data Transformation/Attribute Set Reduction and Transformation/Generation> Extract Gender) and connect it with the Excel file and a CSV exporter to view the results. 
  
-Leave the APIKey / APIChannel blanks to use the free GendRE API.
+Leave the api_key / api_channels to default to use the free GendRE API.
 
 ## Network/API troubleshooting
 In case of network error,
@@ -66,14 +66,14 @@ https://github.com/namsor/rapidminer-onomastics-extension/issues
 
 You can upgrade the GendRE API (better precision) and subscribe for commercial support.
 
-## Upgrading GendRE API on Mashape
-You can upgrade the GendRE API (better precision) and subscribe for commercial support.
+## Upgrading GendRE API on Mashape.com
+You can upgrade the GendRE API (for better precision) and subscribe for commercial support.
 - Register on Mashape.com to obtain an API Key
-https://www.mashape.com/namsor/
+https://www.mashape.com/namsor/gendre-infer-gender-from-world-names
 
 In the Operator parameters,
-- API Key: enter your Mashape.com API Key
-- API Channel: enter mashape.com/project_name 
+- api_key: enter your Mashape.com API Key
+- api_channel: enter mashape.com
  
 To report an issue or ask a question to our support team, please use
 https://www.mashape.com/namsor/gendre-infer-gender-from-world-names#!issues
