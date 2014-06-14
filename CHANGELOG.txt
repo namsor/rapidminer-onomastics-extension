@@ -1,0 +1,19 @@
+v0.0.2
+- renamed operator to Extract Gender
+- ? how to change group from Onomastics to an existing group 'Data Transformation/Attribute Set Reduction and Transformation/Generation' ? currently it creates dupplicate 'Data Transformation/Attribute Set Reduction and Transformation/Generation' group
+    - ? how to set the color ? seems the color would be taken from the group
+- renamed APIKey attribute to api_key, etc.
+- clarified statement on free version
+- created drop down list for Countries
+- changed visibility of attributes to Beginners as well
+- renamed nameSet to 'example set input' etc.
+- generated meta data using MDTransformationRule
+- added additional parameters to allow the user to select source attributes for first and last name
+- country selection can be row based by specifying an additional column containing the country
+- the country selection parameter is only used where missing values in the country column
+- added optional parameters so that the user is able to specify the output attributes’ names
+- ? how to handle such errors : missing Values need to be treated as they are now crashing the operator ? should I throw an exception, log the error or return 'unknown' in the result?
+- added a button in the parameters to actually open a browser to acquire a professional key
+
+v0.0.1
+Initial version.

@@ -2,7 +2,7 @@ RapidMiner Onomastics Extension
 ===============================
 
 NamSor Applied Onomastics extension for RapidMiner, includes the following operators:
-- GendRE Genderizer
+- Extract Gender
 
 # Introduction
 
@@ -14,7 +14,7 @@ Guessing the gender of name is not as simple as it seems:
 - in Chinese or Korean, guessing the gender is almost impossible in Latin script, truly difficult even with the original script
 - in most cultures, the gender is 'encoded' in the first name, in others it is encoded in the last name as well (for example, Slavic names, Lithuanian names ...) so you can guess the gender even if you have just the initials (for example, O. Sokolova is most likely a Slavic name and a female name)
 - some names are very rare or just 'made up' and yet, because they sound like a male name or a female name, their gender is accurately perceived by the people in that same culture
-GendRE API goal is to hide this complexity, offer a simple interface and return an optimal result:
+GendRE Genderizer API goal is to hide this complexity, offer a simple interface and return an optimal result:
 api/json/gendre/John/Smith
 {"scale":-0.99,"gender":"male"}
 
@@ -23,7 +23,7 @@ api/json/gendre/בנימין/נתניהו/il
 api/json/gendre/声涛/周
 api/json/gendre/معين/المرعبي/lb
 Currently, we require input names to be properly parsed into a (firstName, lastName) format and our machine learning algorithm will progressively discover how names are parsed in different cultures. When this calibration is complete, we'll offer an even simpler interface. 
-In RapidMiner, simply connect the GendRE Genderizer operator in your process to infer the gender of a personal name and create new data/new segmentation.
+In RapidMiner, simply connect the Extract Gender operator in your process to infer the gender of a personal name and create new data/new segmentation.
 
 # Getting Started
 This section will get you started with NamSor Onomastics Extension. 
@@ -48,7 +48,7 @@ Create a simple Excel document with columns firstName, lastName and a few contac
 Drag and drop the Read Excel operator (Import->Data->Read Excel) and launch the Import Configuration Wizard.
 Default values should be OK through the wizard, except Encoding should be set to UTF-8 (Unicode, especially required if you would like to genderize Chinese, Russian or Arabic names).
 
-Drag and drop the GendRE Genderizer operator (Operators>Onomastics> GendRE Genderizer) and connect it with the Excel file and a CSV exporter to view the results. 
+Drag and drop the Extract Gender operator (Operators>Onomastics> Extract Gender) and connect it with the Excel file and a CSV exporter to view the results. 
  
 Leave the APIKey / APIChannel blanks to use the free GendRE API.
 
