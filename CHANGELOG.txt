@@ -1,7 +1,14 @@
+TODO:
+- add sample process
+
 v0.0.2
+- renamed attributes att_XX to attribute_XX and result_XX
+- refined optional/mandatory/expert mode of attributes
+- added country tickbox
+- throws UserError if something is critically missing
 - renamed operator to Extract Gender
-- ? how to change group from Onomastics to an existing group 'Data Transformation/Attribute Set Reduction and Transformation/Generation' ? currently it creates dupplicate 'Data Transformation/Attribute Set Reduction and Transformation/Generation' group
-    - ? how to set the color ? seems the color would be taken from the group
+- changed group from Onomastics to an existing group 'Data Transformation/Attribute Set Reduction and Transformation/Generation' 
+- changed the color (taken from the group)
 - renamed APIKey attribute to api_key, etc.
 - clarified statement on free version
 - created drop down list for Countries

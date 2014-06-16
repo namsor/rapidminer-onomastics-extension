@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <operators name="template" version="5.0" docbundle="com/rapidminer/resources/i18n/OperatorsDocTemplate">
    <group key="">
-      <group key="Data Transformation">
-      	<group key="Attribute Set Reduction and Transformation">
-      	  <group key="Generation">
+      <group key="data_transformation">
+      	<group key="attribute_space_transformation">
+      	  <group key="generation">
       	    <operator>
              <key>Extract Gender</key>
              <class>com.namsor.api.rapidminer.ExtractGenderOperator</class>

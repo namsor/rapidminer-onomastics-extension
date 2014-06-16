@@ -33,15 +33,15 @@ public class GendreAPIPreviewCreator implements PreviewCreator {
 
 	public void createPreview(PreviewListener listener) {
 		try {
-			JOptionPane.showMessageDialog(new JFrame(), API_MSG, API_TITLE, JOptionPane.INFORMATION_MESSAGE);
-			Logger.getLogger(getClass().getName()).log(
-					Level.INFO,
-					"Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
-			
-			URL url = new URL(ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);
-			// propagate click to Operator
-			listener.getProcess();
-			openWebpage(url);
+			int confirm = JOptionPane.showConfirmDialog(new JFrame(), API_MSG, API_TITLE, JOptionPane.OK_CANCEL_OPTION);
+			if( confirm == JOptionPane.OK_OPTION) {
+				Logger.getLogger(getClass().getName()).log(
+						Level.INFO,
+						"Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
+				
+				URL url = new URL(ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);
+				openWebpage(url);				
+			}
 		} catch (MalformedURLException e) {
 			Logger.getLogger(getClass().getName()).log(
 					Level.WARNING,
