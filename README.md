@@ -4,6 +4,9 @@ RapidMiner Onomastics Extension
 NamSor Applied Onomastics extension for RapidMiner, includes the following operators:
 - Extract Gender
 
+This document in full (PDF)
+https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201406_NamSor_RapidMiner_Extension_v002.pdf?raw=true
+
 # Introduction
 
 If you are reading this tutorial, you probably have already installed RapidMiner and gained some experience by playing around with the enormous set of operators.
@@ -33,7 +36,7 @@ This section will get you started with NamSor Onomastics Extension.
 Pre-compiled extension binaries can be found in GitHub /dist/ directory.
 
 Use RapidMiner MarketPlace:
-// add snapshot
+Simply search for NamSor or 'Extract Gender' in the MarketPlace. 
 
 Install manually in RapidMiner 6:
 Copy the Extension binary into RapidMiner extension directory. For example, on Windows:
@@ -46,11 +49,23 @@ C:\Program Files (x86)\Rapid-I\RapidMiner5\lib\plugins\rapidminer-NamSor-5.3.001
 ## Create your first process
 Create a simple Excel document with columns first_name, last_name and a few contacts.
 Drag and drop the Read Excel operator (Import->Data->Read Excel) and launch the Import Configuration Wizard.
-Default values should be OK through the wizard, except Encoding should be set to UTF-8 (Unicode, especially required if you would like to genderize Chinese, Russian or Arabic names).
-
-Drag and drop the Extract Gender operator (Operators>Data Transformation/Attribute Set Reduction and Transformation/Generation> Extract Gender) and connect it with the Excel file and a CSV exporter to view the results. 
  
-Leave the api_key / api_channels to default to use the free GendRE API.
+Default values should be OK through the wizard, except Attribute should be 'Text' and Encoding should be set to UTF-8 (Unicode, especially required if you would like to genderize Chinese, Russian or Arabic names). 
+Drag and drop the Extract Gender operator (Operators>Data Transformation/Attribute Set Reduction and Transformation/Generation/Extract Gender). Connect the operator with the Excel file and map the attributes.
+ 
+Leave the api_key / api_channel to use the free GendRE API. 
+Add a CSV exporter to view the results. 
+
+## Additional attributes and parameters
+country: If your data has Country information, you can select the Country attribute on a row-by-row basis to specify which country statistics should be used when predicting gender (ex. Andrea is male in Italy, rather Female in the US). 
+country_default: You can also specify a default Country parameter which will be applied, unless there is a Country specified at the row level. 
+NB: this information will be inferred automatically in an upcoming API release, by recognizing the cultural origin of the (first_name, last_name) combination. 
+
+Expert Parameters
+batch_id: If your data is logically grouped (ex. Twitter followers by Twitter user, etc.) you can set a Batch ID to maintain input/output data information. 
+result_scale, result_gender: Here you can change the default names for result/output attributes. 
+threshold: This parameter specifies threshold according to which Gender is considered 'Unknown' (evaluating 'Unknown' = abs(scale)<threshold)
+
 
 ## Network/API troubleshooting
 In case of network error,

@@ -2,6 +2,7 @@ TODO:
 - add sample process
 
 v0.0.2
+- updated documentation /doc
 - renamed attributes att_XX to attribute_XX and result_XX
 - refined optional/mandatory/expert mode of attributes
 - added country tickbox
@@ -19,7 +20,6 @@ v0.0.2
 - country selection can be row based by specifying an additional column containing the country
 - the country selection parameter is only used where missing values in the country column
 - added optional parameters so that the user is able to specify the output attributes’ names
-- ? how to handle such errors : missing Values need to be treated as they are now crashing the operator ? should I throw an exception, log the error or return 'unknown' in the result?
 - added a button in the parameters to actually open a browser to acquire a professional key
 
 v0.0.1
