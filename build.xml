@@ -17,7 +17,7 @@
 
 	<property name="extension.name" value="NamSor" />
 	<property name="extension.name.long" value="RapidMiner - NamSor Applied Onomastics Extension" />
-	<property name="extension.namespace" value="com.namsor" />
+	<property name="extension.namespace" value="namsor" />
     <property name="extension.vendor" value="NamSor Applied Onomastics" />
     <property name="extension.admin" value="" />
     <property name="extension.url" value="http://namsor.com/api" />

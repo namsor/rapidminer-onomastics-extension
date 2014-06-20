@@ -1,27 +1,5 @@
 <?xml version="1.0" encoding="windows-1252" standalone="no"?>
 <operatorHelp lang="en_EN">
-    <!--  This is an example how to specify the description of operators and the translation of it's key identifier
-    to names. 
-
-   <operator>
-      <name>SingleTextInput</name>
-      <synopsis>Generates word vectors from a single text.</synopsis>
-      <help />
-   </operator>
-   <operator>
-      <name>TextObjectWriter</name>
-      <synopsis>Writes a textobject into a file.</synopsis>
-      <help>This operator writes a given textObject into a file. It might be specified if an existing file with the same name should be overwritten.</help>
-   </operator>
-
-    This is how group ids are translated:
-    
-   <group>
-      <key>text_processing</key>
-      <name>Text Processing</name>
-   </group>
-
-    -->
    <operator>
       <name>Extract Gender</name>
       <synopsis>GendRE Genderizer infers the gender from international names.</synopsis>
@@ -32,6 +10,66 @@
           GendRE API can use both the first_name and last_name (ex. for Slavic names, to deambiguate names like Andrea male in Italy, female in the US, ...)
           GendRE API is free to use with certain restrictions. Please also consider our commercial offering, with additional support and features.  
           More info on http://namsor.com/api</help>
+          
+<tutorialProcesses>
+   <tutorialProcess key="process.data_transformation.attribute_space_transformation.generation.extract_gender" title="Extracting Gender from a Contact Name">
+    <description>
+     <paragraph>
+      	This process shows how one can simply extract a the likely gender from a contact name.
+     </paragraph>
+    </description>
+<process version="5.3.015">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="5.3.015" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="generate_data_user_specification" compatibility="5.3.015" expanded="true" height="60" name="Generate Data by User Specification" width="90" x="45" y="30">
+        <list key="attribute_values">
+          <parameter key="first_name" value="&quot;John&quot;"/>
+          <parameter key="last_name" value="&quot;Smith&quot;"/>
+        </list>
+        <list key="set_additional_roles"/>
+      </operator>
+      <operator activated="true" class="com.namsor:Extract Gender" compatibility="5.3.000" expanded="true" height="60" name="Extract Gender" width="90" x="179" y="30">
+        <parameter key="attribute_first_name" value="first_name"/>
+        <parameter key="attribute_last_name" value="last_name"/>
+        <parameter key="attribute_batch_id" value=""/>
+        <parameter key="result_scale" value="scale"/>
+        <parameter key="result_gender" value="gender"/>
+        <parameter key="threshold" value="0.1"/>
+        <parameter key="use_country" value="false"/>
+        <parameter key="attribute_country" value=""/>
+        <parameter key="country_default" value="-ALL COUNTRIES-"/>
+        <parameter key="api_key" value="-use free version-"/>
+        <parameter key="api_channel" value="-use free version-"/>
+      </operator>
+      <operator activated="true" class="write_csv" compatibility="5.3.015" expanded="true" height="76" name="Write CSV" width="90" x="313" y="30">
+        <parameter key="csv_file" value="output"/>
+        <parameter key="column_separator" value=";"/>
+        <parameter key="write_attribute_names" value="true"/>
+        <parameter key="quote_nominal_values" value="true"/>
+        <parameter key="format_date_attributes" value="true"/>
+        <parameter key="append_to_file" value="false"/>
+        <parameter key="encoding" value="SYSTEM"/>
+      </operator>
+      <connect from_op="Generate Data by User Specification" from_port="output" to_op="Extract Gender" to_port="example set input"/>
+      <connect from_op="Extract Gender" from_port="example set output" to_op="Write CSV" to_port="input"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+    </process>
+  </operator>
+</process>
+    </tutorialProcess>
+  </tutorialProcesses>      
    </operator>
     
 </operatorHelp>

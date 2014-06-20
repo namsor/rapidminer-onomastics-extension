@@ -20,7 +20,7 @@
         </list>
         <list key="set_additional_roles"/>
       </operator>
-      <operator activated="true" class="com.namsor:Extract Gender" compatibility="5.3.000" expanded="true" height="60" name="Extract Gender" width="90" x="179" y="30">
+      <operator activated="true" class="namsor:Extract Gender" compatibility="5.3.000" expanded="true" height="60" name="Extract Gender" width="90" x="179" y="30">
         <parameter key="attribute_first_name" value="first_name"/>
         <parameter key="attribute_last_name" value="last_name"/>
         <parameter key="attribute_batch_id" value=""/>
