@@ -150,6 +150,18 @@ public class ExtractGenderOperator extends Operator {
 		return value;
 	}
 
+	/**
+	 * Fix any char that would cause the URL to be incorrect
+	 * @param someString
+	 * @return
+	 */
+	private static final String cleanup(String someString) {
+		if(someString==null) {
+			return null;
+		}
+		return someString.replace('\\', ' ').replace('/', ' ');
+	}
+	
 	@Override
 	public void doWork() throws OperatorException {
 
@@ -226,10 +238,13 @@ public class ExtractGenderOperator extends Operator {
 			}
 
 			String firstName = example.getValueAsString(fnAttribute);
+			firstName = cleanup(firstName);
 			String lastName = example.getValueAsString(lnAttribute);
+			lastName = cleanup(lastName);
 			String iso2 = null;
 			if (iso2Attribute != null) {
 				iso2 = example.getValueAsString(iso2Attribute);
+				iso2 = cleanup(iso2);
 			}
 			String batchId = null;
 			if (batchIdAttribute != null) {
