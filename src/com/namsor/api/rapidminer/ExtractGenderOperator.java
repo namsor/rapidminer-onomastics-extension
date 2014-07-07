@@ -88,7 +88,7 @@ public class ExtractGenderOperator extends Operator {
 	private static final String ATTRIBUTE_COUNTRY = "country";
 	private static final String ATTRIBUTE_BATCHID = "batch_id";
 
-	private static final String ATTRIBUTE_META_PREFIX_OUTPUT = "result_";
+	private static final String ATTRIBUTE_META_PREFIX_OUTPUT = "result_attribute_";
 	private static final String ATTRIBUTE_GENDERSCALE = "scale";
 	private static final String ATTRIBUTE_GENDER = "gender";
 	private static final String ATTRIBUTE_COUNTRY_DEFAULT = "country_default";
@@ -337,6 +337,28 @@ public class ExtractGenderOperator extends Operator {
 				false, false);
 		types.add(last_name);
 
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_COUNTRY,
+				"Indicates if country hints should be used.", false, false));
+
+		ParameterTypeAttribute country = new ParameterTypeAttribute(
+				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_COUNTRY,
+				"Input attribute name for Country (2-letters ISO2 code)",
+				inputSet, true, // optional
+				false);
+		country.registerDependencyCondition(new BooleanParameterCondition(this,
+				PARAMETER_USE_COUNTRY, false, true));
+		types.add(country);
+
+		ParameterTypeStringCategory countryDefault = new ParameterTypeStringCategory(
+				ATTRIBUTE_COUNTRY_DEFAULT,
+				"This parameter to refine the default country to use, it not already specified in data input.",
+				CountryISO.countryNames(), CountryISO.COUNTRIES_ALL, false);
+		countryDefault.setExpert(false);
+		countryDefault
+				.registerDependencyCondition(new BooleanParameterCondition(
+						this, PARAMETER_USE_COUNTRY, false, true));
+		types.add(countryDefault);
+		
 		ParameterTypeAttribute batch_id = new ParameterTypeAttribute(
 				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_BATCHID,
 				"Input attribute name for Batch ID", inputSet, true, true);
@@ -361,28 +383,6 @@ public class ExtractGenderOperator extends Operator {
 				0, +1, ATTRIBUTE_THRESHOLD_DEFAULT, false);
 		threshold.setExpert(true);
 		types.add(threshold);
-
-		types.add(new ParameterTypeBoolean(PARAMETER_USE_COUNTRY,
-				"Indicates if country hints should be used.", false, false));
-
-		ParameterTypeAttribute country = new ParameterTypeAttribute(
-				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_COUNTRY,
-				"Input attribute name for Country (2-letters ISO2 code)",
-				inputSet, true, // optional
-				false);
-		country.registerDependencyCondition(new BooleanParameterCondition(this,
-				PARAMETER_USE_COUNTRY, false, true));
-		types.add(country);
-
-		ParameterTypeStringCategory countryDefault = new ParameterTypeStringCategory(
-				ATTRIBUTE_COUNTRY_DEFAULT,
-				"This parameter to refine the default country to use, it not already specified in data input.",
-				CountryISO.countryNames(), CountryISO.COUNTRIES_ALL, false);
-		countryDefault.setExpert(false);
-		countryDefault
-				.registerDependencyCondition(new BooleanParameterCondition(
-						this, PARAMETER_USE_COUNTRY, false, true));
-		types.add(countryDefault);
 
 		types.add(new ParameterTypeString(
 				API_CHANNEL_SECRET,

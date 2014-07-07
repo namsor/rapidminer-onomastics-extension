@@ -25,11 +25,9 @@ public class GenderAPIClient {
 
 	private static final String MASHAPE_API_ADDRESS = "https://namsor-gendre.p.mashape.com/gendre/";
 
-	private static final String ATTVALUE_ClientAppVersion = "RapidMinerExt_v0.0.2";
+	private static final String ATTVALUE_ClientAppVersion = "RapidMinerExt_v0.0.3";
 
-	private static final String API_ADDRESS = "http://api.onomatic.com/onomastics/api/gendre/";
-	// private static final String API_ADDRESS =
-	// "http://localhost:8084/onomastics/api/gendre/";
+	private static final String API_ADDRESS = "http://api.namsor.com/onomastics/api/gendre/";
 
 	private static final GenderAPIClient instance = new GenderAPIClient();
 
