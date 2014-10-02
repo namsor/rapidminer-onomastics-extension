@@ -49,11 +49,11 @@ Simply search for NamSor or 'Extract Gender' in the MarketPlace.
 
 Install manually in RapidMiner 6:
 Copy the Extension binary into RapidMiner extension directory. For example, on Windows:
-C:\Program Files\RapidMiner\RapidMiner Studio\lib\plugins\rapidminer-NamSor-6.0.003.jar
+C:\Program Files\RapidMiner\RapidMiner Studio\lib\plugins\rapidminer-NamSor-6.0.004.jar
 
 Install manually in RapidMiner 5.3:
 Copy the Extension binary into RapidMiner extension directory. For example, on Windows:
-C:\Program Files (x86)\Rapid-I\RapidMiner5\lib\plugins\rapidminer-NamSor-5.3.003.jar
+C:\Program Files (x86)\Rapid-I\RapidMiner5\lib\plugins\rapidminer-NamSor-5.3.004.jar
 
 ## Create your first process
 Create a simple Excel document with columns first_name, last_name and a few contacts.
