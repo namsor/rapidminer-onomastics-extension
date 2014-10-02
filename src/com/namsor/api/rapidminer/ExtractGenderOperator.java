@@ -6,19 +6,28 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+
 import sun.awt.windows.ThemeReader;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.rapidminer.Process;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -69,7 +78,7 @@ import com.rapidminer.tools.math.container.Range;
  */
 public class ExtractGenderOperator extends Operator {
 	private static final Random RND = new Random();
-
+	
 	public static final String API_CHANNEL_SECRET = "api_key";
 	public static final String API_CHANNEL_USER = "api_channel";
 	private static final String API_IS_FREE_VALUE = "-use free version-";
@@ -104,8 +113,32 @@ public class ExtractGenderOperator extends Operator {
 	private static final String GENDER_VALUE_FEMALE = "Female";
 	private static final String GENDER_VALUE_UNKNOWN = "Unknown";
 
+	private static final int BATCH_REQUEST_SIZE = 1000;
+	private static final int CACHE_maxEntriesLocalHeap = 1000000;
+	private static final String CACHE_name = "cache";
+	private final Cache cache;
+
+	private Cache getOrCreateCache() {
+		// Create a singleton CacheManager using defaults
+		CacheManager manager = CacheManager.create();
+		// Create a Cache specifying its configuration
+		Cache c = manager.getCache(CACHE_name);
+		if (c == null) {
+			c = new Cache(new CacheConfiguration(CACHE_name,
+					CACHE_maxEntriesLocalHeap)
+					.memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
+					.eternal(true)
+					.persistence(
+							new PersistenceConfiguration()
+									.strategy(Strategy.LOCALTEMPSWAP)));
+			manager.addCache(c);
+		}
+		return c;
+	}
+
 	public ExtractGenderOperator(OperatorDescription description) {
 		super(description);
+		cache = getOrCreateCache();
 		inputSet.addPrecondition(new ExampleSetPrecondition(inputSet,
 				new String[] { ATTRIBUTE_FN }, Ontology.ATTRIBUTE_VALUE));
 		inputSet.addPrecondition(new ExampleSetPrecondition(inputSet,
@@ -152,16 +185,17 @@ public class ExtractGenderOperator extends Operator {
 
 	/**
 	 * Fix any char that would cause the URL to be incorrect
+	 * 
 	 * @param someString
 	 * @return
 	 */
 	private static final String cleanup(String someString) {
-		if(someString==null) {
+		if (someString == null) {
 			return null;
 		}
 		return someString.replace('\\', ' ').replace('/', ' ');
 	}
-	
+
 	@Override
 	public void doWork() throws OperatorException {
 
@@ -214,12 +248,40 @@ public class ExtractGenderOperator extends Operator {
 				genderAttributeName, Ontology.STRING);
 		exampleSet.getExampleTable().addAttribute(genderAttribute);
 		attributes.addRegular(genderAttribute);
+		// create API
+		GenderAPI api = null;
+		if (APIKey != null
+				&& !APIKey.trim().equals(API_IS_FREE_VALUE)
+				&& APIChannel != null
+				&& APIChannel.trim().toLowerCase()
+						.startsWith(MASHAPE_CHANNEL_USER)) {
+			// use Mashape API
+			api = new RegisteredGenderAPIClient(APIKey);
+		} else if (APIKey != null && !APIKey.trim().equals(API_IS_FREE_VALUE)
+				&& APIChannel != null && !APIChannel.trim().isEmpty()
+				&& APIKey != null && !APIKey.trim().isEmpty()) {
+			// use Premium API
+			api = new PureGenderAPIClient(APIChannel, APIKey);
+		} else {
+			// if (APIKey == null || APIKey.trim().isEmpty() ||
+			// APIKey.trim().equals(API_IS_FREE_VALUE) ) {
+			// use Free API
+			api = new PureGenderAPIClient();
+		}
 		// for progress monitoring
 		long startProcessing = System.currentTimeMillis();
 		int tobeProcessed = exampleSet.size();
 		int countProcessed = 0;
 		int pctDone = 0;
+
+		String batchIdDefault = "" + System.currentTimeMillis();
+		// support batch mode: this is the buffer
+		List<GenderResponse> namesBuffer = new ArrayList(BATCH_REQUEST_SIZE);
+		Map<String, Example> bufferMapping = new HashMap();
+
+		int rowId = 0;
 		for (Example example : exampleSet) {
+			rowId++;
 			int pct = (int) (countProcessed * 1f / tobeProcessed);
 			long currentTime = System.currentTimeMillis();
 			long ttc = (long) (countProcessed
@@ -249,6 +311,8 @@ public class ExtractGenderOperator extends Operator {
 			String batchId = null;
 			if (batchIdAttribute != null) {
 				batchId = example.getValueAsString(batchIdAttribute);
+			} else {
+				batchId = batchIdDefault;
 			}
 			if (iso2 != null && iso2.trim().length() == 2) {
 				// real value
@@ -259,66 +323,118 @@ public class ExtractGenderOperator extends Operator {
 				// invalid value, set to null
 				iso2 = null;
 			}
-			double genderScale = 0d;
 			if (firstName != null && lastName != null
 					&& !firstName.trim().isEmpty()
 					&& !lastName.trim().isEmpty()) {
-				try {
-					if (APIKey != null
-							&& !APIKey.trim().equals(API_IS_FREE_VALUE)
-							&& APIChannel != null
-							&& APIChannel.trim().toLowerCase()
-									.startsWith(MASHAPE_CHANNEL_USER)) {
-						// use Mashape API
-						genderScale = GenderAPIClient.getInstance()
-								.genderizeMashape(APIKey, firstName, lastName,
-										iso2);
-						Logger.getLogger(getClass().getName()).log(
-								Level.FINE,
-								"GendRE API Freemium (Mashape) " + firstName
-										+ "/" + lastName + "/" + iso2 + "="
-										+ genderScale);
-					} else if (APIKey != null
-							&& !APIKey.trim().equals(API_IS_FREE_VALUE)
-							&& APIChannel != null
-							&& !APIChannel.trim().isEmpty() && APIKey != null
-							&& !APIKey.trim().isEmpty()) {
-						// use Premium API
-						genderScale = GenderAPIClient.getInstance()
-								.genderizePremium(APIChannel, APIKey, batchId,
-										firstName, lastName, iso2);
-						Logger.getLogger(getClass().getName()).log(
-								Level.FINE,
-								"GendRE API Premium " + firstName + "/"
-										+ lastName + "/" + iso2 + "="
-										+ genderScale);
-					} else {
-						// if (APIKey == null || APIKey.trim().isEmpty() ||
-						// APIKey.trim().equals(API_IS_FREE_VALUE) ) {
-						// use Free API
-						genderScale = GenderAPIClient.getInstance()
-								.genderizeFree(firstName, lastName, iso2);
-						Logger.getLogger(getClass().getName()).log(
-								Level.FINE,
-								"GendRE API Free " + firstName + "/" + lastName
-										+ "/" + iso2 + "=" + genderScale);
+				// try cache first
+				String key = firstName+"/"+lastName+"/"+iso2;
+				Element element = getCache().get(key);
+				if( element != null ) {
+					Double genderScale = (Double) element.getObjectValue();
+					String gender = "Unknown";
+					if (genderScale > threshold) {
+						gender = "Female";
+					} else if (genderScale < -threshold) {
+						gender = "Male";
 					}
+					example.setValue(genderScaleAttribute, genderScale);
+					example.setValue(genderAttribute, gender);
+				} else {
+					String reqId = batchIdDefault + "-" + rowId;
+					GenderResponse param = new GenderResponse();
+					param.setFirstName(firstName);
+					param.setLastname(lastName);
+					param.setCountryIso2(iso2);
+					param.setId(reqId);
+					namesBuffer.add(param);
+					bufferMapping.put(reqId, example);
+					if (namesBuffer.size() >= BATCH_REQUEST_SIZE) {
+						// flush buffer
+						genderize(api, namesBuffer, bufferMapping, batchIdDefault,
+								threshold, genderScaleAttribute, genderAttribute);
+					}
+				}
+			}
+		}
+		// final flush buffer
+		genderize(api, namesBuffer, bufferMapping, batchIdDefault, threshold,
+				genderScaleAttribute, genderAttribute);
+		outputSet.deliver(exampleSet);
+	}
+
+	private static final int MIN_NAMES_TO_USE_BATCH_API = 10;
+
+	private void genderize(GenderAPI api, List<GenderResponse> namesBuffer,
+			Map<String, Example> bufferMapping, String batchId,
+			double threshold, Attribute genderScaleAttribute,
+			Attribute genderAttribute) throws UserError {
+		if (api.allowsBatchAPI()
+				&& namesBuffer.size() > MIN_NAMES_TO_USE_BATCH_API) {
+			GenderResponse[] a1 = new GenderResponse[namesBuffer.size()];
+			GenderResponse[] a2 = (GenderResponse[]) namesBuffer.toArray(a1);
+			GenderBatchRequest req = new GenderBatchRequest();
+			req.setNames(a2);
+			try {
+				GenderBatchRequest resp = api.genderizeBatch(batchId, req);
+				for (GenderResponse genderResponse : resp.getNames()) {
+					double genderScale = genderResponse.getScale();
+					// update cache
+					String key = genderResponse.getFirstName()+"/"+genderResponse.getLastname()+"/"+genderResponse.getCountryIso2();
+					getCache().put(new Element(key,genderScale));
+					
+					String reqId = genderResponse.getId();
+					String gender = "Unknown";
+					if (genderScale > threshold) {
+						gender = "Female";
+					} else if (genderScale < -threshold) {
+						gender = "Male";
+					}
+					Example example = bufferMapping.get(reqId);
+					example.setValue(genderScaleAttribute, genderScale);
+					example.setValue(genderAttribute, gender);
+				}
+			} catch (GenderAPIException e) {
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE,
+						"GenderAPI error : " + e.getMessage(), e);
+				throw new UserError(this, e, 108, e.getMessage());
+			}
+		} else {
+			for (GenderResponse genderResponse : namesBuffer) {
+				double genderScale = 0d;
+				String reqId = genderResponse.getId();
+				try {
+					genderScale = api.genderize(genderResponse.getFirstName(),
+							genderResponse.getLastname(),
+							genderResponse.getCountryIso2(), batchId);
+					// update cache
+					String key = genderResponse.getFirstName()+"/"+genderResponse.getLastname()+"/"+genderResponse.getCountryIso2();
+					getCache().put(new Element(key,genderScale));
+					
+					Logger.getLogger(getClass().getName()).log(
+							Level.FINE,
+							"GendRE API " + genderResponse.getFirstName() + "/"
+									+ genderResponse.getLastname() + "/"
+									+ genderResponse.getCountryIso2() + " = "
+									+ genderScale);
 				} catch (GenderAPIException e) {
 					Logger.getLogger(getClass().getName()).log(Level.SEVERE,
 							"GenderAPI error : " + e.getMessage(), e);
 					throw new UserError(this, e, 108, e.getMessage());
 				}
+				String gender = "Unknown";
+				if (genderScale > threshold) {
+					gender = "Female";
+				} else if (genderScale < -threshold) {
+					gender = "Male";
+				}
+				Example example = bufferMapping.get(reqId);
+				example.setValue(genderScaleAttribute, genderScale);
+				example.setValue(genderAttribute, gender);
 			}
-			String gender = "Unknown";
-			if (genderScale > threshold) {
-				gender = "Female";
-			} else if (genderScale < -threshold) {
-				gender = "Male";
-			}
-			example.setValue(genderScaleAttribute, genderScale);
-			example.setValue(genderAttribute, gender);
 		}
-		outputSet.deliver(exampleSet);
+		// clear buffer
+		namesBuffer.clear();
+		bufferMapping.clear();
 	}
 
 	@Override
@@ -358,7 +474,7 @@ public class ExtractGenderOperator extends Operator {
 				.registerDependencyCondition(new BooleanParameterCondition(
 						this, PARAMETER_USE_COUNTRY, false, true));
 		types.add(countryDefault);
-		
+
 		ParameterTypeAttribute batch_id = new ParameterTypeAttribute(
 				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_BATCHID,
 				"Input attribute name for Batch ID", inputSet, true, true);
@@ -421,6 +537,10 @@ public class ExtractGenderOperator extends Operator {
 		types.add(getAPIKey);
 
 		return types;
+	}
+
+	private Cache getCache() {
+		return cache;
 	}
 
 }

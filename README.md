@@ -1,11 +1,11 @@
 RapidMiner Onomastics Extension
 ===============================
 
-NamSor Applied Onomastics extension for RapidMiner, includes the following operators:
+NamSor Applied Onomastics extension for RapidMiner, includes the following operators to infer valuable information from names:
 - Extract Gender
 
 This document in full (PDF)
-https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201407_NamSor_RapidMiner_Extension_v003.pdf?raw=true
+https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201410_NamSor_RapidMiner_Extension_v004.pdf?raw=true
 
 # Introduction
 
@@ -27,6 +27,15 @@ api/json/gendre/声涛/周
 api/json/gendre/معين/المرعبي/lb
 Currently, we require input names to be properly parsed into a (first_name, last_name) format and our machine learning algorithm will progressively discover how names are parsed in different cultures. When this calibration is complete, we'll offer an even simpler interface. 
 In RapidMiner, simply connect the Extract Gender operator in your process to infer the gender of a personal name and create new data/new segmentation.
+
+# Why should I register on Mashape?
+If you set an API Key in the Extract Gender operator, you'll have
+- higher performance & throughput (hundreds of names processed at a time)
+- full double precision
+- commercial support via Mashape Ticketing
+
+Get a Freemium API Key
+https://www.mashape.com/namsor/gendre-infer-gender-from-world-names
 
 # Getting Started
 This section will get you started with NamSor Onomastics Extension. 
@@ -74,6 +83,7 @@ http://api.namsor.com/onomastics/api/json/gendre/John/Smith
 {"scale":-0.99,"gender":"male"}
 
 - check your RapidMiner proxy configuration in Tools>Preferences>System
+or specify a proxy in RapidMiner Java Virtual Machine (JVM) launch script
 
 ## Getting support
 Please report any issue with the software or the GendRE API via GitHub
