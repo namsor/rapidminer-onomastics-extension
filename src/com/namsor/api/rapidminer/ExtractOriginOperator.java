@@ -556,7 +556,7 @@ public class ExtractOriginOperator extends Operator {
 		ParameterTypePreview getAPIKey = new ParameterTypePreview(
 				MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY,
 				MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY_MSG,
-				GendreAPIPreviewCreator.class, previewListener);
+				OriginAPIPreviewCreator.class, previewListener);
 		getAPIKey.setExpert(false);
 		types.add(getAPIKey);
 		
