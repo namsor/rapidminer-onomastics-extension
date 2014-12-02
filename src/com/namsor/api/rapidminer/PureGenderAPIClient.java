@@ -31,7 +31,6 @@ public class PureGenderAPIClient implements GenderAPI {
 	private static final String ATTR_XChannelUser = "X-Channel-User";
 	private static final String ATTR_XBatchRequest = "X-BatchRequest-Id";
 	private static final String ATTR_XClientVersion = "X-Client-Version";
-	private static final String ATTVALUE_ClientAppVersion = "RapidMinerExt_v0.0.4";
 
 	private final String APIChannel;
 	private final String APIKey;
@@ -107,7 +106,7 @@ public class PureGenderAPIClient implements GenderAPI {
 				myURLConnection.setRequestProperty(ATTR_XBatchRequest, batchId);
 			}
 			myURLConnection.setRequestProperty(ATTR_XClientVersion,
-					ATTVALUE_ClientAppVersion);
+					SoftwareVersion.ATTVALUE_ClientAppVersion);
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					myURLConnection.getInputStream(), "UTF-8"));
@@ -165,7 +164,7 @@ public class PureGenderAPIClient implements GenderAPI {
 				myURLConnection.setRequestProperty(ATTR_XBatchRequest, batchId);
 			}
 			myURLConnection.setRequestProperty(ATTR_XClientVersion,
-					ATTVALUE_ClientAppVersion);
+					SoftwareVersion.ATTVALUE_ClientAppVersion);
 
 			OutputStream outStream = myURLConnection.getOutputStream();
 			Writer out = new OutputStreamWriter(outStream, "UTF-8");

@@ -93,6 +93,21 @@
 				</tutorialProcess>
 			</tutorialProcesses>
 		</operator>
+		<operator>
+			<name>Extract Origin</name>
+			<synopsis>This operator will guess the likely country of origin of a personal name, based on the sociolinguistics of the name (language, culture).</synopsis>
+			<help>
+				NamSor Origin API will guess the likely country of origin of a personal name, based on the sociolinguistics of the name (language, culture). This is a coarse grain API, typically for marketing or social analytics.
+				
+				The method for anthroponomical classification can be summarized as follow: judging from the name only and the publicly available list of all ~150k Olympic athletes since 1896 (and other similar lists of names), for which national team would the person most likely run? Here, the United-States are typically considered as a melting pot of other ‘cultural origins’: Ireland, Germany, etc. and not as a onomastic class on its own.
+				
+				This API is available exclusively on Mashape https://www.mashape.com/namsor/origin
+
+				More info on http://namsor.com/api
+			</help>
+			<tutorialProcesses>
+			</tutorialProcesses>
+		</operator>
 
 	</operatorHelp>
 </p1:documents>

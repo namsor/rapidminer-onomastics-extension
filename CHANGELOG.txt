@@ -2,6 +2,9 @@ TODO:
 - add sample process
 - fix #Gwendolyn Cheatham|.
 
+v0.0.5
+- added Extract Origin operator - for registered users
+
 v0.0.4
 - use batch genderize API instead of individual calls to API (50-100x faster) - for registered users
 - add caching : within a RapidMiner session same name won't be genderized twice 

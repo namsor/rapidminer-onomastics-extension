@@ -115,7 +115,7 @@ public class ExtractGenderOperator extends Operator {
 
 	private static final int BATCH_REQUEST_SIZE = 1000;
 	private static final int CACHE_maxEntriesLocalHeap = 1000000;
-	private static final String CACHE_name = "cache";
+	private static final String CACHE_name = "genderCache";
 	private final Cache cache;
 
 	private Cache getOrCreateCache() {

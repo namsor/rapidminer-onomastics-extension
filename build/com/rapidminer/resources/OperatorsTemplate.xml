@@ -10,6 +10,12 @@
 			 <icon>objects_transform.png</icon>
              <replaces>Extract Gender</replaces>
             </operator>
+            <operator>
+             <key>Extract Origin</key>
+             <class>com.namsor.api.rapidminer.ExtractOriginOperator</class>
+			 <icon>objects_transform.png</icon>
+             <replaces>Extract Origin</replaces>
+            </operator>
            </group>
         </group>
       </group>
