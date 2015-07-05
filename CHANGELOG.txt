@@ -1,5 +1,7 @@
+v0.0.6
+- added Parse Name operator - for registered users
+- save API Key in User Prefs
 TODO:
-- add sample process
 - fix #Gwendolyn Cheatham|.
 
 v0.0.5

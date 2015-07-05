@@ -65,46 +65,46 @@ import com.rapidminer.tools.math.container.Range;
 
 /**
  * Onomastics is a set of operators to extract information from personal names.
- * - Extract Origin is an operator to infer the likely country of origin of a
- * name.
+ * - Parse Name is an operator to infer the likely structure (firstName, lastName order or conversely) of a name.
  * 
  * @author ELC201203
  * 
  */
-public class ExtractOriginOperator extends Operator {
+public class ParseNameOperator extends Operator {
 	private static final Random RND = new Random();
 
 	private static final String API_IS_FREE_VALUE = "-get your freemium API Key-";
 
+	private static final String PARAMETER_USE_COUNTRY = "use_country";
 
 	private static final String ATTRIBUTE_META_PREFIX_INPUT = "attribute_";
-	private static final String ATTRIBUTE_FN = "first_name";
-	private static final String ATTRIBUTE_LN = "last_name";
+	private static final String ATTRIBUTE_FULLNAME = "full_name";
+	private static final String ATTRIBUTE_COUNTRY = "country";
+	private static final String ATTRIBUTE_COUNTRY_DEFAULT = "country_default";
+	private static final String ATTRIBUTE_PARSENAME_TIP = "parsename_tip";
+	private static final String ATTRIBUTE_PARSENAME_TIPDEFAULT = "-use default-";
+	private static final String[] ATTRIBUTE_PARSENAME_TIPS = {
+		ATTRIBUTE_PARSENAME_TIPDEFAULT,
+		"ORDER_FNLN",  // firstName first
+		"ORDER_LNFN",  // lastName first
+		"ORDER_FNLN_OR_LNFN", // make best guess name by name
+		"ORDER_FNLN_OR_LNFN_ALLSAME" // make best guess and apply to ALL the names (if most names are FNLN, then ALL names will be considered FNLN)
+	};
 
 	private static final String ATTRIBUTE_META_PREFIX_OUTPUT = "result_attribute_";
-	private static final String ATTRIBUTE_SCORE = "score";
-	private static final String ATTRIBUTE_SCOREROUNDED = "scoreRounded";
-
-	private static final String ATTRIBUTE_SCRIPT = "script";
-	private static final String ATTRIBUTE_COUNTRY = "country";
-	private static final String ATTRIBUTE_COUNTRYALT = "countryAlt";
-	private static final String ATTRIBUTE_COUNTRYFIRSTNAME = "countryFirstName";
-	private static final String ATTRIBUTE_COUNTRYLASTNAME = "countryLastName";
-	private static final String ATTRIBUTE_SCOREFIRSTNAME = "scoreFirstName";
-	private static final String ATTRIBUTE_SCORELASTNAME = "scoreLastName";
-	private static final String ATTRIBUTE_SUBREGION = "subRegion";
-	private static final String ATTRIBUTE_REGION = "region";
-	private static final String ATTRIBUTE_TOPREGION = "topRegion";
-	private static final String ATTRIBUTE_COUNTRYNAME = "countryName";
-	private static final String[] STR_ATTRIBUTES = { ATTRIBUTE_SCRIPT, // script";
-			ATTRIBUTE_COUNTRY, // country";
-			ATTRIBUTE_COUNTRYALT, // countryAlt";
-			ATTRIBUTE_COUNTRYFIRSTNAME, // countryFirstName";
-			ATTRIBUTE_COUNTRYLASTNAME, // countryLastName";
-			ATTRIBUTE_SUBREGION, // subRegion";
-			ATTRIBUTE_REGION, // region";
-			ATTRIBUTE_TOPREGION, // topRegion";
-			ATTRIBUTE_COUNTRYNAME, // countryName";
+	private static final String ATTRIBUTE_FN = "first_name";
+	private static final String ATTRIBUTE_LN = "last_name";
+	private static final String ATTRIBUTE_MID = "mid_name";
+	private static final String ATTRIBUTE_TITLE = "title";
+	private static final String ATTRIBUTE_NAMEFORMAT = "name_format";
+	private static final String ATTRIBUTE_SCORE = "score_parse";
+	
+	private static final String[] STR_ATTRIBUTES = { 
+			ATTRIBUTE_FN, 
+			ATTRIBUTE_LN, 
+			ATTRIBUTE_MID,
+			ATTRIBUTE_TITLE,
+			ATTRIBUTE_NAMEFORMAT
 	};
 
 	private static final String MSG_Output_attribute_name_for = "Output attribute name for "; 
@@ -115,7 +115,7 @@ public class ExtractOriginOperator extends Operator {
 
 	private static final int BATCH_REQUEST_SIZE = 1000;
 	private static final int CACHE_maxEntriesLocalHeap = 100000;
-	private static final String CACHE_name = "geonoma";
+	private static final String CACHE_name = "parse";
 	private final Cache cache;
 
 	private Cache getOrCreateCache() {
@@ -136,13 +136,11 @@ public class ExtractOriginOperator extends Operator {
 		return c;
 	}
 
-	public ExtractOriginOperator(OperatorDescription description) {
+	public ParseNameOperator(OperatorDescription description) {
 		super(description);
 		cache = getOrCreateCache();
 		inputSet.addPrecondition(new ExampleSetPrecondition(inputSet,
-				new String[] { ATTRIBUTE_FN }, Ontology.ATTRIBUTE_VALUE));
-		inputSet.addPrecondition(new ExampleSetPrecondition(inputSet,
-				new String[] { ATTRIBUTE_LN }, Ontology.ATTRIBUTE_VALUE));
+				new String[] { ATTRIBUTE_FULLNAME }, Ontology.ATTRIBUTE_VALUE));
 		// getTransformer().addPassThroughRule(inputSet, outputSet);
 		getTransformer().addRule(new MDTransformationRule() {
 			@Override
@@ -156,11 +154,6 @@ public class ExtractOriginOperator extends Operator {
 								ATTRIBUTE_SCORE, Ontology.REAL);
 						// idMD.setValueRange(new Range(-1, +1),
 						// SetRelation.EQUAL);
-						emd.addAttribute(idMD);
-					}
-					{
-						AttributeMetaData idMD = new AttributeMetaData(
-								ATTRIBUTE_SCOREROUNDED, Ontology.INTEGER);
 						emd.addAttribute(idMD);
 					}
 					for (String attr : STR_ATTRIBUTES) {
@@ -204,23 +197,28 @@ public class ExtractOriginOperator extends Operator {
 		Attributes attributes = exampleSet.getAttributes();
 
 		// input attribute names
-		String fnAttributeName = getParameterAsString(
-				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_FN, ATTRIBUTE_FN);
-		String lnAttributeName = getParameterAsString(
-				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_LN, ATTRIBUTE_LN);
+		String fullNameAttributeName = getParameterAsString(
+				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_FULLNAME, ATTRIBUTE_FULLNAME);
+		String iso2AttributeName = getParameterAsString(
+				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_COUNTRY,
+				ATTRIBUTE_COUNTRY);
 
-		Attribute fnAttribute = attributes.get(fnAttributeName);
-		if (fnAttribute == null) {
-			throw new UserError(this, 111, fnAttributeName);
+		Attribute fullNameAttribute = attributes.get(fullNameAttributeName);
+		if (fullNameAttribute == null) {
+			throw new UserError(this, 111, fullNameAttributeName);
 		}
-		Attribute lnAttribute = attributes.get(lnAttributeName);
-		if (lnAttribute == null) {
-			throw new UserError(this, 111, lnAttributeName);
-		}
+		Attribute iso2Attribute = attributes.get(iso2AttributeName);
 
 		String APIKey = getParameterAsString(NamSorAPI.API_CHANNEL_SECRET);
 		String APIChannel = getParameterAsString(NamSorAPI.API_CHANNEL_USER);
 
+		String countryDefault_ = getParameterAsString(ATTRIBUTE_COUNTRY_DEFAULT);
+		String countryDefault = CountryISO.countryIso2(countryDefault_);
+
+		String parseNameTip_ = getParameterAsString(ATTRIBUTE_PARSENAME_TIP);
+		if( parseNameTip_.equals(ATTRIBUTE_PARSENAME_TIPDEFAULT)) {
+			parseNameTip_=null;
+		}
 		// output attribute names
 
 		Attribute originScoreAttribute = AttributeFactory.createAttribute(
@@ -228,31 +226,6 @@ public class ExtractOriginOperator extends Operator {
 						+ ATTRIBUTE_SCORE, ATTRIBUTE_SCORE), Ontology.REAL);
 		exampleSet.getExampleTable().addAttribute(originScoreAttribute);
 		attributes.addRegular(originScoreAttribute);
-
-		Attribute originScoreFirstNameAttribute = AttributeFactory
-				.createAttribute(
-						getParameterAsString(ATTRIBUTE_META_PREFIX_OUTPUT
-								+ ATTRIBUTE_SCOREFIRSTNAME,
-								ATTRIBUTE_SCOREFIRSTNAME), Ontology.REAL);
-		exampleSet.getExampleTable()
-				.addAttribute(originScoreFirstNameAttribute);
-		attributes.addRegular(originScoreFirstNameAttribute);
-
-		Attribute originScoreLastNameAttribute = AttributeFactory
-				.createAttribute(
-						getParameterAsString(ATTRIBUTE_META_PREFIX_OUTPUT
-								+ ATTRIBUTE_SCORELASTNAME,
-								ATTRIBUTE_SCORELASTNAME), Ontology.REAL);
-		exampleSet.getExampleTable().addAttribute(originScoreLastNameAttribute);
-		attributes.addRegular(originScoreLastNameAttribute);
-
-		Attribute originScoreRoundedAttribute = AttributeFactory
-				.createAttribute(
-						getParameterAsString(ATTRIBUTE_META_PREFIX_OUTPUT
-								+ ATTRIBUTE_SCOREROUNDED,
-								ATTRIBUTE_SCOREROUNDED), Ontology.INTEGER);
-		exampleSet.getExampleTable().addAttribute(originScoreRoundedAttribute);
-		attributes.addRegular(originScoreRoundedAttribute);
 
 		Map<String, Attribute> strAttribute = new HashMap();
 		for (String attr : STR_ATTRIBUTES) {
@@ -264,7 +237,7 @@ public class ExtractOriginOperator extends Operator {
 			strAttribute.put(attr, originStrAttribute);
 		}
 		// create API
-		OriginAPI api = null;
+		ParseAPI api = null;
 		if (APIKey != null
 				&& !APIKey.trim().equals(API_IS_FREE_VALUE)
 				&& APIChannel != null
@@ -275,7 +248,8 @@ public class ExtractOriginOperator extends Operator {
 			prefs.put(NamSorAPI.API_CHANNEL_SECRET, APIKey);
 			prefs.put(NamSorAPI.API_CHANNEL_USER, APIChannel);
 			// use Mashape API
-			api = new RegisteredOriginAPIClient(APIKey);
+			throw new UserError(this, new ParseAPIException("Please, enter a NamSor APIKey (Mashape Key not yet supported for this operator)"), "APIKey");
+			//api = new RegisteredParseAPIClient(APIKey);
 		} else if (APIKey != null && !APIKey.trim().equals(API_IS_FREE_VALUE)
 				&& APIChannel != null && !APIChannel.trim().isEmpty()
 				&& APIKey != null && !APIKey.trim().isEmpty()) {
@@ -284,7 +258,7 @@ public class ExtractOriginOperator extends Operator {
 			prefs.put(NamSorAPI.API_CHANNEL_SECRET, APIKey);
 			prefs.put(NamSorAPI.API_CHANNEL_USER, APIChannel);
 			// use Premium API
-			api = new PureOriginAPIClient(APIChannel, APIKey);
+			api = new PureParseAPIClient(APIChannel, APIKey);
 		} else {
 			// if (APIKey == null || APIKey.trim().isEmpty() ||
 			// APIKey.trim().equals(API_IS_FREE_VALUE) ) {
@@ -299,7 +273,7 @@ public class ExtractOriginOperator extends Operator {
 
 		String batchIdDefault = "" + System.currentTimeMillis();
 		// support batch mode: this is the buffer
-		List<GeoriginResponse> namesBuffer = new ArrayList(BATCH_REQUEST_SIZE);
+		List<ParseResponse> namesBuffer = new ArrayList(BATCH_REQUEST_SIZE);
 		Map<String, Example> bufferMapping = new HashMap();
 
 		int rowId = 0;
@@ -322,183 +296,150 @@ public class ExtractOriginOperator extends Operator {
 				Logger.getLogger(getClass().getName()).log(Level.FINE, logMsg);
 			}
 
-			String firstName = example.getValueAsString(fnAttribute);
-			firstName = cleanup(firstName);
-			String lastName = example.getValueAsString(lnAttribute);
-			lastName = cleanup(lastName);
-
-			if (firstName != null && lastName != null
-					&& !firstName.trim().isEmpty()
-					&& !lastName.trim().isEmpty()) {
+			String fullName = example.getValueAsString(fullNameAttribute);
+			fullName = cleanup(fullName);
+			String iso2 = null;
+			if (iso2Attribute != null) {
+				iso2 = example.getValueAsString(iso2Attribute);
+				iso2 = cleanup(iso2);
+			}
+			if (iso2 != null && iso2.trim().length() == 2) {
+				// real value
+			} else if (countryDefault != null
+					&& countryDefault.trim().length() == 2) {
+				iso2 = countryDefault.trim();
+			} else {
+				// invalid value, set to null
+				iso2 = null;
+			}
+			if (fullName != null 
+					&& !fullName.trim().isEmpty()
+					) {
 				// try cache first
-				String key = firstName + "/" + lastName;
-				Element element = getCache().get(key);
+				String key = fullName + "/" + iso2;
+				Element element = null;
+				// don't use cache is a specific method is specified
+				if( parseNameTip_ == null ) {
+					element = getCache().get(key);
+				}
 				if (element != null) {
-					GeoriginResponse origin = (GeoriginResponse) element
+					ParseResponse origin = (ParseResponse) element
 							.getObjectValue();
 					example.setValue(originScoreAttribute, origin.getScore());
-					example.setValue(originScoreFirstNameAttribute,
-							origin.getScoreFirstName());
-					example.setValue(originScoreLastNameAttribute,
-							origin.getScoreLastName());
-					example.setValue(originScoreRoundedAttribute,
-							Math.round(origin.getScore()));
-					example.setValue(strAttribute.get("country"),
-							origin.getCountry());
-					example.setValue(strAttribute.get("countryAlt"),
-							origin.getCountryAlt());
-					example.setValue(strAttribute.get("countryFirstName"),
-							origin.getCountryFirstName());
-					example.setValue(strAttribute.get("countryLastName"),
-							origin.getCountryLastName());
-					example.setValue(strAttribute.get("countryName"),
-							origin.getCountryName());
-					example.setValue(strAttribute.get("region"),
-							origin.getRegion());
-					example.setValue(strAttribute.get("script"),
-							origin.getScript());
-					example.setValue(strAttribute.get("subRegion"),
-							origin.getSubRegion());
-					example.setValue(strAttribute.get("topRegion"),
-							origin.getTopRegion());
+					example.setValue(strAttribute.get(ATTRIBUTE_FN),
+							origin.getFirstName());
+					example.setValue(strAttribute.get(ATTRIBUTE_LN),
+							origin.getLastName());
+					example.setValue(strAttribute.get(ATTRIBUTE_MID),
+							origin.getMidName());
+					example.setValue(strAttribute.get(ATTRIBUTE_TITLE),
+							origin.getTitle());
+					example.setValue(strAttribute.get(ATTRIBUTE_NAMEFORMAT),
+							origin.getNameFormat());
 				} else {
 					String reqId = batchIdDefault + "-" + rowId;
-					GeoriginResponse param = new GeoriginResponse();
-					param.setFirstName(firstName);
-					param.setLastName(lastName);
+					ParseResponse param = new ParseResponse();
+					param.setFullName(fullName);
+					param.setCountryIso2(iso2);
 					param.setId(reqId);
 					namesBuffer.add(param);
 					bufferMapping.put(reqId, example);
 					if (namesBuffer.size() >= BATCH_REQUEST_SIZE) {
 						// flush buffer
-						origin(api, namesBuffer, bufferMapping, batchIdDefault,
-								strAttribute, originScoreAttribute,
-								originScoreRoundedAttribute,
-								originScoreFirstNameAttribute,
-								originScoreLastNameAttribute);
+						parse(api, namesBuffer, bufferMapping, batchIdDefault,
+								strAttribute, originScoreAttribute,parseNameTip_);
 					}
 				}
 			}
 		}
 		// final flush buffer
-		origin(api, namesBuffer, bufferMapping, batchIdDefault,
-								strAttribute, originScoreAttribute,
-								originScoreRoundedAttribute,
-								originScoreFirstNameAttribute,
-								originScoreLastNameAttribute);
+		parse(api, namesBuffer, bufferMapping, batchIdDefault,
+								strAttribute, originScoreAttribute, parseNameTip_);
 		outputSet.deliver(exampleSet);
 	}
 
 
 	private static final int MIN_NAMES_TO_USE_BATCH_API = 10;
 
-	private void origin(OriginAPI api, List<GeoriginResponse> namesBuffer,
+	private void parse(ParseAPI api, List<ParseResponse> namesBuffer,
 			Map<String, Example> bufferMapping, String batchId, 
 			Map<String, Attribute> strAttribute,
-			Attribute originScoreAttribute,
-			Attribute originScoreRoundedAttribute,
-			Attribute originScoreFirstNameAttribute,
-			Attribute originScoreLastNameAttribute)
+			Attribute originScoreAttribute, String parseNameTip)
 			throws UserError {
 		if (api.allowsBatchAPI()
 				&& namesBuffer.size() > MIN_NAMES_TO_USE_BATCH_API) {
-			GeoriginResponse[] a1 = new GeoriginResponse[namesBuffer.size()];
-			GeoriginResponse[] a2 = (GeoriginResponse[]) namesBuffer
+			ParseResponse[] a1 = new ParseResponse[namesBuffer.size()];
+			ParseResponse[] a2 = (ParseResponse[]) namesBuffer
 					.toArray(a1);
-			GeoriginBatchRequest req = new GeoriginBatchRequest();
+			ParseBatchRequest req = new ParseBatchRequest();
 			req.setNames(a2);
+			if( parseNameTip!=null) {
+				req.setNameFormatTip(parseNameTip);
+			}
 			try {
-				GeoriginBatchRequest resp = api.originBatch(req);
-				for (GeoriginResponse genderResponse : resp.getNames()) {
+				ParseBatchRequest resp = api.parseBatch(req);
+				for (ParseResponse genderResponse : resp.getNames()) {
 					// update cache
-					String key = genderResponse.getFirstName() + "/"
-							+ genderResponse.getLastName();
+					String key = genderResponse.getFullName() + "/"
+							+ genderResponse.getCountryIso2();
 					getCache().put(new Element(key, genderResponse));
 
 					String reqId = genderResponse.getId();
 					Example example = bufferMapping.get(reqId);
 
-					GeoriginResponse origin = genderResponse;
+					ParseResponse origin = genderResponse;
 					example.setValue(originScoreAttribute, origin.getScore());
-					example.setValue(originScoreFirstNameAttribute,
-							origin.getScoreFirstName());
-					example.setValue(originScoreLastNameAttribute,
-							origin.getScoreLastName());
-					example.setValue(originScoreRoundedAttribute,
-							Math.round(origin.getScore()));
-					example.setValue(strAttribute.get("country"),
-							origin.getCountry());
-					example.setValue(strAttribute.get("countryAlt"),
-							origin.getCountryAlt());
-					example.setValue(strAttribute.get("countryFirstName"),
-							origin.getCountryFirstName());
-					example.setValue(strAttribute.get("countryLastName"),
-							origin.getCountryLastName());
-					example.setValue(strAttribute.get("countryName"),
-							origin.getCountryName());
-					example.setValue(strAttribute.get("region"),
-							origin.getRegion());
-					example.setValue(strAttribute.get("script"),
-							origin.getScript());
-					example.setValue(strAttribute.get("subRegion"),
-							origin.getSubRegion());
-					example.setValue(strAttribute.get("topRegion"),
-							origin.getTopRegion());
+					example.setValue(strAttribute.get(ATTRIBUTE_FN),
+							origin.getFirstName());
+					example.setValue(strAttribute.get(ATTRIBUTE_LN),
+							origin.getLastName());
+					example.setValue(strAttribute.get(ATTRIBUTE_MID),
+							origin.getMidName());
+					example.setValue(strAttribute.get(ATTRIBUTE_TITLE),
+							origin.getTitle());
+					example.setValue(strAttribute.get(ATTRIBUTE_NAMEFORMAT),
+							origin.getNameFormat());
 				}
-			} catch (OriginAPIException e) {
+			} catch (ParseAPIException e) {
 				Logger.getLogger(getClass().getName()).log(Level.SEVERE,
 						"OriginAPI error : " + e.getMessage(), e);
 				throw new UserError(this, e, 108, e.getMessage());
 			}
 		} else {
-			for (GeoriginResponse genderResponse : namesBuffer) {
-				GeoriginResponse genderScale = null;
+			for (ParseResponse genderResponse : namesBuffer) {
+				ParseResponse genderScale = null;
 				String reqId = genderResponse.getId();
 				try {
-					genderScale = api.origin(genderResponse.getFirstName(),
-							genderResponse.getLastName());
+					genderScale = api.parse(genderResponse.getFullName(),
+							genderResponse.getCountryIso2());
 					// update cache
-					String key = genderResponse.getFirstName() + "/"
-							+ genderResponse.getLastName();
+					String key = genderResponse.getFullName() + "/"
+							+ genderResponse.getCountryIso2();
 					getCache().put(new Element(key, genderScale));
 
 					Logger.getLogger(getClass().getName()).log(
 							Level.FINE,
-							"OriginAPI " + genderResponse.getFirstName() + "/"
-									+ genderResponse.getLastName() + " = "
+							"ParseAPI " + genderResponse.getFullName() + "/"
+									+ genderResponse.getCountryIso2() + " = "
 									+ genderScale);
-				} catch (OriginAPIException e) {
+				} catch (ParseAPIException e) {
 					Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-							"OriginAPI error : " + e.getMessage(), e);
+							"ParseAPI error : " + e.getMessage(), e);
 					throw new UserError(this, e, 108, e.getMessage());
 				}
 				Example example = bufferMapping.get(reqId);
-					GeoriginResponse origin = genderScale;
+					ParseResponse origin = genderScale;
 					example.setValue(originScoreAttribute, origin.getScore());
-					example.setValue(originScoreFirstNameAttribute,
-							origin.getScoreFirstName());
-					example.setValue(originScoreLastNameAttribute,
-							origin.getScoreLastName());
-					example.setValue(originScoreRoundedAttribute,
-							Math.round(origin.getScore()));
-					example.setValue(strAttribute.get("country"),
-							origin.getCountry());
-					example.setValue(strAttribute.get("countryAlt"),
-							origin.getCountryAlt());
-					example.setValue(strAttribute.get("countryFirstName"),
-							origin.getCountryFirstName());
-					example.setValue(strAttribute.get("countryLastName"),
-							origin.getCountryLastName());
-					example.setValue(strAttribute.get("countryName"),
-							origin.getCountryName());
-					example.setValue(strAttribute.get("region"),
-							origin.getRegion());
-					example.setValue(strAttribute.get("script"),
-							origin.getScript());
-					example.setValue(strAttribute.get("subRegion"),
-							origin.getSubRegion());
-					example.setValue(strAttribute.get("topRegion"),
-							origin.getTopRegion());
+					example.setValue(strAttribute.get(ATTRIBUTE_FN),
+							origin.getFirstName());
+					example.setValue(strAttribute.get(ATTRIBUTE_LN),
+							origin.getLastName());
+					example.setValue(strAttribute.get(ATTRIBUTE_MID),
+							origin.getMidName());
+					example.setValue(strAttribute.get(ATTRIBUTE_TITLE),
+							origin.getTitle());
+					example.setValue(strAttribute.get(ATTRIBUTE_NAMEFORMAT),
+							origin.getNameFormat());
 			}
 		}
 		// clear buffer
@@ -511,19 +452,41 @@ public class ExtractOriginOperator extends Operator {
 		List<ParameterType> types = super.getParameterTypes();
 		{
 		ParameterTypeAttribute first_name = new ParameterTypeAttribute(
-				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_FN,
-				MSG_Output_attribute_name_for+"First Name (Given Name)", inputSet,
+				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_FULLNAME,
+				MSG_Output_attribute_name_for+"Full Name", inputSet,
 				false, false);
 		types.add(first_name);
 		}
-		{
-		ParameterTypeAttribute last_name = new ParameterTypeAttribute(
-				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_LN,
-				MSG_Output_attribute_name_for+"Last Name (Family Name)", inputSet,
-				false, false);
-		types.add(last_name);
-		}
+		
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_COUNTRY,
+				"Indicates if country hints should be used.", false, false));
 
+		ParameterTypeAttribute country = new ParameterTypeAttribute(
+				ATTRIBUTE_META_PREFIX_INPUT + ATTRIBUTE_COUNTRY,
+				"Input attribute name for Country (2-letters ISO2 code)",
+				inputSet, true, // optional
+				false);
+		country.registerDependencyCondition(new BooleanParameterCondition(this,
+				PARAMETER_USE_COUNTRY, false, true));
+		types.add(country);
+
+		ParameterTypeStringCategory countryDefault = new ParameterTypeStringCategory(
+				ATTRIBUTE_COUNTRY_DEFAULT,
+				"This parameter to refine the default country to use, it not already specified in data input.",
+				CountryISO.countryNames(), CountryISO.COUNTRIES_ALL, false);
+		countryDefault.setExpert(false);
+		countryDefault
+				.registerDependencyCondition(new BooleanParameterCondition(
+						this, PARAMETER_USE_COUNTRY, false, true));
+		types.add(countryDefault);
+
+		ParameterTypeStringCategory parseNameTip = new ParameterTypeStringCategory(
+				ATTRIBUTE_PARSENAME_TIP,
+				"This parameter to refine the how lists of names should be handled, assuming all names are in firstName, lastName order; or the opposite; or best guess one by one; or best guess assuming all have the same order.",
+				ATTRIBUTE_PARSENAME_TIPS, ATTRIBUTE_PARSENAME_TIPDEFAULT, false);
+		parseNameTip.setExpert(false);
+		types.add(parseNameTip);
+		
 		Preferences prefs = Preferences.userRoot().node(NamSorAPI.class.getName());
 		String apiChannelSecret = prefs.get(NamSorAPI.API_CHANNEL_SECRET, API_IS_FREE_VALUE);
 		String apiChannelUser = prefs.get(NamSorAPI.API_CHANNEL_USER, API_IS_FREE_VALUE);
@@ -565,13 +528,6 @@ public class ExtractOriginOperator extends Operator {
 		types.add(getAPIKey);
 		
 		{
-		ParameterTypeString country = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_COUNTRY,
-				MSG_Output_attribute_name_for+"Country", ATTRIBUTE_COUNTRY, false);
-		country.setExpert(true);
-		types.add(country);
-		}
-		{
 		ParameterTypeString score = new ParameterTypeString(
 				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SCORE,
 				MSG_Output_attribute_name_for+"Score", ATTRIBUTE_SCORE,
@@ -580,85 +536,44 @@ public class ExtractOriginOperator extends Operator {
 		types.add(score);
 		}
 		{
-		ParameterTypeString scoreRounded = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SCOREROUNDED,
-				MSG_Output_attribute_name_for+"Score (Rounded)", ATTRIBUTE_SCOREROUNDED,
-				false);
-		scoreRounded.setExpert(true);
-		types.add(scoreRounded);
-		}
-		{
 		ParameterTypeString countryAlt = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_COUNTRYALT,
-				MSG_Output_attribute_name_for+"Country", ATTRIBUTE_COUNTRYALT, false);
+				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_FN,
+				MSG_Output_attribute_name_for+"FirstName", ATTRIBUTE_FN, false);
 		countryAlt.setExpert(true);
 		types.add(countryAlt);
 		}
 		{
 		ParameterTypeString script = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SCRIPT,
-				MSG_Output_attribute_name_for+"Script", ATTRIBUTE_SCRIPT,
+				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_LN,
+				MSG_Output_attribute_name_for+"LastName", ATTRIBUTE_LN,
 				false);
 		script.setExpert(true);
 		types.add(script);
 		}
 		{
 		ParameterTypeString countryFirstName = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_COUNTRYFIRSTNAME,
-				MSG_Output_attribute_name_for+"Country (FirstName)", ATTRIBUTE_COUNTRYFIRSTNAME,
+				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_MID,
+				MSG_Output_attribute_name_for+"MidName", ATTRIBUTE_MID,
 				false);
 		countryFirstName.setExpert(true);
 		types.add(countryFirstName);
 		}
 		{
 		ParameterTypeString countryLastName = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_COUNTRYLASTNAME,
-				MSG_Output_attribute_name_for+"Country (LastName)", ATTRIBUTE_COUNTRYLASTNAME,
+				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_TITLE,
+				MSG_Output_attribute_name_for+"Title", ATTRIBUTE_TITLE,
 				false);
 		countryLastName.setExpert(true);
 		types.add(countryLastName);
 		}
 		{
 		ParameterTypeString scoreFirstName = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SCOREFIRSTNAME,
-				MSG_Output_attribute_name_for+"Score (FirstName)", ATTRIBUTE_SCOREFIRSTNAME,
+				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_NAMEFORMAT,
+				MSG_Output_attribute_name_for+"NameFormat", ATTRIBUTE_NAMEFORMAT,
 				false);
 		scoreFirstName.setExpert(true);
 		types.add(scoreFirstName);
 		}
-		{
-		ParameterTypeString scoreLastName = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SCORELASTNAME,
-				MSG_Output_attribute_name_for+"Score (LastName)", ATTRIBUTE_SCORELASTNAME,
-				false);
-		scoreLastName.setExpert(true);
-		types.add(scoreLastName);
-		}
-		{
-		ParameterTypeString subRegion = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_SUBREGION,
-				MSG_Output_attribute_name_for+"Sub-region", ATTRIBUTE_SUBREGION,
-				false);
-		subRegion.setExpert(true);
-		types.add(subRegion);
-		}
-		{
-		ParameterTypeString region = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_REGION,
-				MSG_Output_attribute_name_for+"Region", ATTRIBUTE_REGION,
-				false);
-		region.setExpert(true);
-		types.add(region);
-		}
-		{
-		ParameterTypeString countryName = new ParameterTypeString(
-				ATTRIBUTE_META_PREFIX_OUTPUT + ATTRIBUTE_COUNTRYNAME,
-				MSG_Output_attribute_name_for+"Full country name", ATTRIBUTE_COUNTRYNAME,
-				false);
-		countryName.setExpert(true);
-		types.add(countryName);
-		}				
-
 		return types;
 	}
 

@@ -15,14 +15,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class PureOriginAPIClient implements OriginAPI {
-	private static final String PRIMARY_API_ADDRESS = "http://api.namsor.com/onomastics/api/json/origin/";
-	private static final String PRIMARY_API_ADDRESS_BATCH = "http://api.namsor.com/onomastics/api/json/originList";
-
-	private static final String SECONDARY_API_ADDRESS = "http://api2.namsor.com/onomastics/api/json/origin/";
-	private static final String SECONDARY_API_ADDRESS_BATCH = "http://api2.namsor.com/onomastics/api/json/originList";
-
-	// primary=true, secondary=false
-	private static final boolean PRIMARY_OR_SECONDARY = true;
+	private static final String PRIMARY_API_ADDRESS = NamSorAPI.API_PREFIX
+			+ "onomastics/api/json/origin/";
+	private static final String PRIMARY_API_ADDRESS_BATCH = NamSorAPI.API_PREFIX
+			+ "onomastics/api/json/originList";
 
 	private final String pureGenderAPIAddress;
 	private final String pureGenderAPIAddressBatch;
@@ -39,35 +35,25 @@ public class PureOriginAPIClient implements OriginAPI {
 	public PureOriginAPIClient(final String APIChannel, final String APIKey) {
 		this.APIChannel = APIChannel;
 		this.APIKey = APIKey;
-		if (PRIMARY_OR_SECONDARY) {
-			pureGenderAPIAddress = PRIMARY_API_ADDRESS;
-			pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
-		} else {
-			pureGenderAPIAddress = SECONDARY_API_ADDRESS;
-			pureGenderAPIAddressBatch = SECONDARY_API_ADDRESS_BATCH;
-		}
+		pureGenderAPIAddress = PRIMARY_API_ADDRESS;
+		pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
 	}
 
 	public PureOriginAPIClient() {
 		this.APIChannel = null;
 		this.APIKey = null;
-		if (PRIMARY_OR_SECONDARY) {
-			pureGenderAPIAddress = PRIMARY_API_ADDRESS;
-			pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
-		} else {
-			pureGenderAPIAddress = SECONDARY_API_ADDRESS;
-			pureGenderAPIAddressBatch = SECONDARY_API_ADDRESS_BATCH;
-		}
+		pureGenderAPIAddress = PRIMARY_API_ADDRESS;
+		pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
 	}
 
 	@Override
-	public GeoriginResponse origin(
-			String firstName, String lastName) throws OriginAPIException {
+	public GeoriginResponse origin(String firstName, String lastName)
+			throws OriginAPIException {
 
-		if (firstName == null ) {
+		if (firstName == null) {
 			firstName = "";
 		}
-		if (lastName == null ) {
+		if (lastName == null) {
 			lastName = "";
 		}
 
@@ -75,12 +61,12 @@ public class PureOriginAPIClient implements OriginAPI {
 		StringWriter resp = new StringWriter();
 		try {
 
-				url = pureGenderAPIAddress
-						+ URLEncoder.encode(firstName.replace('.', ' ').trim(),
-								"UTF-8")
-						+ "/"
-						+ URLEncoder.encode(lastName.replace('.', ' ').trim(),
-								"UTF-8");
+			url = pureGenderAPIAddress
+					+ URLEncoder.encode(firstName.replace('.', ' ').trim(),
+							"UTF-8")
+					+ "/"
+					+ URLEncoder.encode(lastName.replace('.', ' ').trim(),
+							"UTF-8");
 			URL api = new URL(url);
 
 			HttpURLConnection myURLConnection = (HttpURLConnection) api
@@ -113,7 +99,6 @@ public class PureOriginAPIClient implements OriginAPI {
 		}
 	}
 
-
 	@Override
 	public boolean allowsBatchAPI() {
 		return (APIChannel != null && APIKey != null
@@ -121,8 +106,8 @@ public class PureOriginAPIClient implements OriginAPI {
 	}
 
 	@Override
-	public GeoriginBatchRequest originBatch(
-			GeoriginBatchRequest req) throws OriginAPIException {
+	public GeoriginBatchRequest originBatch(GeoriginBatchRequest req)
+			throws OriginAPIException {
 		try {
 			String url = pureGenderAPIAddressBatch;
 
@@ -170,6 +155,5 @@ public class PureOriginAPIClient implements OriginAPI {
 			throw new OriginAPIException(e);
 		}
 	}
-
 
 }

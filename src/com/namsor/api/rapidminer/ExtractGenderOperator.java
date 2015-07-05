@@ -62,6 +62,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.math.container.Range;
+import java.util.prefs.Preferences;
 
 /**
  * Onomastics is a set of operators to extract information from personal names.
@@ -79,14 +80,7 @@ import com.rapidminer.tools.math.container.Range;
 public class ExtractGenderOperator extends Operator {
 	private static final Random RND = new Random();
 	
-	public static final String API_CHANNEL_SECRET = "api_key";
-	public static final String API_CHANNEL_USER = "api_channel";
 	private static final String API_IS_FREE_VALUE = "-use free version-";
-
-	public static final String MASHAPE_CHANNEL_USER = "mashape.com";
-	public static final String MASHAPE_CHANNEL_REGISTRATION_URL = "https://www.mashape.com/namsor/gendre-infer-gender-from-world-names";
-	public static final String MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY = "get_freemium_api_key";
-	public static final String MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY_MSG = "Get a Freemium API Key on Mashape.com";
 
 	private static final String ATTRIBUTE_THRESHOLD = "threshold";
 	private static final Double ATTRIBUTE_THRESHOLD_DEFAULT = .1d;
@@ -115,7 +109,7 @@ public class ExtractGenderOperator extends Operator {
 
 	private static final int BATCH_REQUEST_SIZE = 1000;
 	private static final int CACHE_maxEntriesLocalHeap = 1000000;
-	private static final String CACHE_name = "genderCache";
+	private static final String CACHE_name = "gender";
 	private final Cache cache;
 
 	private Cache getOrCreateCache() {
@@ -233,8 +227,9 @@ public class ExtractGenderOperator extends Operator {
 		Attribute iso2Attribute = attributes.get(iso2AttributeName);
 		Attribute batchIdAttribute = attributes.get(batchIdAttributeName);
 
-		String APIKey = getParameterAsString(API_CHANNEL_SECRET);
-		String APIChannel = getParameterAsString(API_CHANNEL_USER);
+		String APIKey = getParameterAsString(NamSorAPI.API_CHANNEL_SECRET);
+		String APIChannel = getParameterAsString(NamSorAPI.API_CHANNEL_USER);
+
 		String countryDefault_ = getParameterAsString(ATTRIBUTE_COUNTRY_DEFAULT);
 		String countryDefault = CountryISO.countryIso2(countryDefault_);
 		double threshold = getParameterAsDouble(ATTRIBUTE_THRESHOLD);
@@ -254,12 +249,21 @@ public class ExtractGenderOperator extends Operator {
 				&& !APIKey.trim().equals(API_IS_FREE_VALUE)
 				&& APIChannel != null
 				&& APIChannel.trim().toLowerCase()
-						.startsWith(MASHAPE_CHANNEL_USER)) {
+						.startsWith(NamSorAPI.MASHAPE_CHANNEL_USER)) {
+			// save pref
+			Preferences prefs = Preferences.userRoot().node(NamSorAPI.class.getName());
+			prefs.put(NamSorAPI.API_CHANNEL_SECRET, APIKey);
+			prefs.put(NamSorAPI.API_CHANNEL_USER, APIChannel);
+
 			// use Mashape API
 			api = new RegisteredGenderAPIClient(APIKey);
 		} else if (APIKey != null && !APIKey.trim().equals(API_IS_FREE_VALUE)
 				&& APIChannel != null && !APIChannel.trim().isEmpty()
 				&& APIKey != null && !APIKey.trim().isEmpty()) {
+			// save pref
+			Preferences prefs = Preferences.userRoot().node(NamSorAPI.class.getName());
+			prefs.put(NamSorAPI.API_CHANNEL_SECRET, APIKey);
+			prefs.put(NamSorAPI.API_CHANNEL_USER, APIChannel);
 			// use Premium API
 			api = new PureGenderAPIClient(APIChannel, APIKey);
 		} else {
@@ -500,15 +504,19 @@ public class ExtractGenderOperator extends Operator {
 		threshold.setExpert(true);
 		types.add(threshold);
 
+		Preferences prefs = Preferences.userRoot().node(NamSorAPI.class.getName());
+		String apiChannelSecret = prefs.get(NamSorAPI.API_CHANNEL_SECRET, API_IS_FREE_VALUE);
+		String apiChannelUser = prefs.get(NamSorAPI.API_CHANNEL_USER, API_IS_FREE_VALUE);
+		
 		types.add(new ParameterTypeString(
-				API_CHANNEL_SECRET,
+				NamSorAPI.API_CHANNEL_SECRET,
 				"GendRE API is free to use with certain restrictions. For commercial subscribers, please insert the API Key.",
-				API_IS_FREE_VALUE, false));
+				apiChannelSecret, false));
 
 		types.add(new ParameterTypeString(
-				API_CHANNEL_USER,
+				NamSorAPI.API_CHANNEL_USER,
 				"GendRE API is free to use with certain restrictions. For commercial subscribers, please insert the API Key domain.",
-				API_IS_FREE_VALUE, false));
+				apiChannelUser, false));
 
 		PreviewListener previewListener = new PreviewListener() {
 
@@ -530,8 +538,8 @@ public class ExtractGenderOperator extends Operator {
 		};
 
 		ParameterTypePreview getAPIKey = new ParameterTypePreview(
-				MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY,
-				MASHAPE_CHANNEL_REGISTRATION_GET_APIKEY_MSG,
+				NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_GET_APIKEY,
+				NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_GET_APIKEY_MSG,
 				GendreAPIPreviewCreator.class, previewListener);
 		getAPIKey.setExpert(false);
 		types.add(getAPIKey);

@@ -1,6 +1,6 @@
 package com.namsor.api.rapidminer;
 
-public interface GenderAPI {
+public interface GenderAPI extends NamSorAPI {
 
 	Double genderize(String firstName, String lastName, String iso2, String batchId) throws GenderAPIException;
 	

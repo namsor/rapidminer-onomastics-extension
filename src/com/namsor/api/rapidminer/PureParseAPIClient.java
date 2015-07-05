@@ -14,18 +14,17 @@ import java.net.URLEncoder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class PureGenderAPIClient implements GenderAPI {
+public class PureParseAPIClient implements ParseAPI {
 	private static final String PRIMARY_API_ADDRESS = NamSorAPI.API_PREFIX
-			+ "onomastics/api/gendre/";
+			+ "onomastics/api/json/parse/";
 	private static final String PRIMARY_API_ADDRESS_BATCH = NamSorAPI.API_PREFIX
-			+ "onomastics/api/json/gendreList";
+			+ "onomastics/api/json/parseList";
 
 	private final String pureGenderAPIAddress;
 	private final String pureGenderAPIAddressBatch;
 
 	private static final String ATTR_XChannelSecret = "X-Channel-Secret";
 	private static final String ATTR_XChannelUser = "X-Channel-User";
-	private static final String ATTR_XBatchRequest = "X-BatchRequest-Id";
 	private static final String ATTR_XClientVersion = "X-Client-Version";
 
 	private final String APIChannel;
@@ -33,47 +32,48 @@ public class PureGenderAPIClient implements GenderAPI {
 
 	private Gson gson = new GsonBuilder().create();
 
-	public PureGenderAPIClient(final String APIChannel, final String APIKey) {
+	public PureParseAPIClient(final String APIChannel, final String APIKey) {
 		this.APIChannel = APIChannel;
 		this.APIKey = APIKey;
 		pureGenderAPIAddress = PRIMARY_API_ADDRESS;
 		pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
 	}
 
-	public PureGenderAPIClient() {
+	public PureParseAPIClient() {
 		this.APIChannel = null;
 		this.APIKey = null;
 		pureGenderAPIAddress = PRIMARY_API_ADDRESS;
 		pureGenderAPIAddressBatch = PRIMARY_API_ADDRESS_BATCH;
 	}
 
-	private Double genderize(final String APIChannel, final String APIKey,
-			final String batchId, final String firstName, String lastName,
-			String iso2) throws GenderAPIException {
+	@Override
+	public ParseResponse parse(String fullName)
+			throws ParseAPIException {
+		return parse(fullName, null);
+	}	
+	
+	@Override
+	public ParseResponse parse(String fullName, String countryIso2)
+			throws ParseAPIException {
 
-		if (firstName == null || firstName.trim().isEmpty() || lastName == null
-				|| lastName.trim().isEmpty()) {
-			return 0d;
+		if (fullName == null) {
+			fullName = "";
 		}
 
 		String url = null;
 		StringWriter resp = new StringWriter();
 		try {
-
-			if (iso2 == null) {
+			if (countryIso2 == null || countryIso2.trim().isEmpty() ) {
 				url = pureGenderAPIAddress
-						+ URLEncoder.encode(firstName.replace('.', ' ').trim(),
-								"UTF-8")
-						+ "/"
-						+ URLEncoder.encode(lastName.replace('.', ' ').trim(),
+						+ URLEncoder.encode(fullName.replace('.', ' ').trim(),
 								"UTF-8");
 			} else {
 				url = pureGenderAPIAddress
-						+ URLEncoder.encode(firstName.replace('.', ' ').trim(),
+						+ URLEncoder.encode(fullName.replace('.', ' ').trim(),
 								"UTF-8")
 						+ "/"
-						+ URLEncoder.encode(lastName.replace('.', ' ').trim(),
-								"UTF-8") + "/" + iso2;
+						+ URLEncoder.encode(countryIso2.replace('.', ' ').trim(),
+								"UTF-8");
 			}
 			URL api = new URL(url);
 
@@ -88,9 +88,6 @@ public class PureGenderAPIClient implements GenderAPI {
 			if (APIKey != null) {
 				myURLConnection.setRequestProperty(ATTR_XChannelSecret, APIKey);
 			}
-			if (batchId != null) {
-				myURLConnection.setRequestProperty(ATTR_XBatchRequest, batchId);
-			}
 			myURLConnection.setRequestProperty(ATTR_XClientVersion,
 					SoftwareVersion.ATTVALUE_ClientAppVersion);
 
@@ -102,17 +99,12 @@ public class PureGenderAPIClient implements GenderAPI {
 				inputLine = in.readLine();
 			}
 			in.close();
-			Double result = Double.parseDouble(resp.toString());
+			ParseResponse result = gson.fromJson(resp.toString(),
+					ParseResponse.class);
 			return result;
 		} catch (Exception e) {
-			throw new GenderAPIException(e);
+			throw new ParseAPIException(e);
 		}
-	}
-
-	@Override
-	public Double genderize(String firstName, String lastName, String iso2,
-			String batchId) throws GenderAPIException {
-		return genderize(APIChannel, APIKey, batchId, firstName, lastName, iso2);
 	}
 
 	@Override
@@ -122,8 +114,8 @@ public class PureGenderAPIClient implements GenderAPI {
 	}
 
 	@Override
-	public GenderBatchRequest genderizeBatch(String batchId,
-			GenderBatchRequest req) throws GenderAPIException {
+	public ParseBatchRequest parseBatch(ParseBatchRequest req)
+			throws ParseAPIException {
 		try {
 			String url = pureGenderAPIAddressBatch;
 
@@ -146,9 +138,6 @@ public class PureGenderAPIClient implements GenderAPI {
 			if (APIKey != null) {
 				myURLConnection.setRequestProperty(ATTR_XChannelSecret, APIKey);
 			}
-			if (batchId != null) {
-				myURLConnection.setRequestProperty(ATTR_XBatchRequest, batchId);
-			}
 			myURLConnection.setRequestProperty(ATTR_XClientVersion,
 					SoftwareVersion.ATTVALUE_ClientAppVersion);
 
@@ -167,12 +156,11 @@ public class PureGenderAPIClient implements GenderAPI {
 				resp.append(inputLine);
 				inputLine = in.readLine();
 			}
-			in.close();
-			GenderBatchRequest result = gson.fromJson(resp.toString(),
-					GenderBatchRequest.class);
+			ParseBatchRequest result = gson.fromJson(resp.toString(),
+					ParseBatchRequest.class);
 			return result;
 		} catch (Exception e) {
-			throw new GenderAPIException(e);
+			throw new ParseAPIException(e);
 		}
 	}
 

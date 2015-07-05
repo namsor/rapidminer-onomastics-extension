@@ -24,28 +24,25 @@ public class GendreAPIPreviewCreator implements PreviewCreator {
 
 	private final static String API_TITLE = "Getting an API Key";
 	
-	private final static String API_MSG = "Get an API Key on "+ExtractGenderOperator.MASHAPE_CHANNEL_USER+" then set "+
-			ExtractGenderOperator.API_CHANNEL_SECRET+"=<your api key> and "+
-			ExtractGenderOperator.API_CHANNEL_USER+"="+ExtractGenderOperator.MASHAPE_CHANNEL_USER;
 	
 	public GendreAPIPreviewCreator() {
 	}
 
 	public void createPreview(PreviewListener listener) {
 		try {
-			JOptionPane.showMessageDialog(new JFrame(), API_MSG, API_TITLE, JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(new JFrame(), NamSorAPI.API_MSG, API_TITLE, JOptionPane.INFORMATION_MESSAGE);
 			Logger.getLogger(getClass().getName()).log(
 					Level.INFO,
-					"Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
+					"Please get your API Key at "+NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_URL);		
 			
-			URL url = new URL(ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);
+			URL url = new URL(NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_URL);
 			// propagate click to Operator
 			listener.getProcess();
 			openWebpage(url);
 		} catch (MalformedURLException e) {
 			Logger.getLogger(getClass().getName()).log(
 					Level.WARNING,
-					"Couldn't open in browser. Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
+					"Couldn't open in browser. Please get your API Key at "+NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_URL);		
 		}
 	}
 
@@ -57,7 +54,7 @@ public class GendreAPIPreviewCreator implements PreviewCreator {
 	        } catch (Exception e) {
 				Logger.getLogger(GendreAPIPreviewCreator.class.getName()).log(
 						Level.WARNING,
-						"Couldn't open in browser. Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
+						"Couldn't open in browser. Please get your API Key at "+NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_URL);		
 	        }
 	    }
 	}
@@ -68,7 +65,7 @@ public class GendreAPIPreviewCreator implements PreviewCreator {
 	    } catch (URISyntaxException e) {
 			Logger.getLogger(GendreAPIPreviewCreator.class.getName()).log(
 					Level.WARNING,
-					"Couldn't open in browser. Please get your API Key at "+ExtractGenderOperator.MASHAPE_CHANNEL_REGISTRATION_URL);		
+					"Couldn't open in browser. Please get your API Key at "+NamSorAPI.NAMSOR_CHANNEL_REGISTRATION_URL);		
 	    }
 	}
 }

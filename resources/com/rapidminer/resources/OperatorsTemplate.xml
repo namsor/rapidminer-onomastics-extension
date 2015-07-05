@@ -6,15 +6,24 @@
       	  <group key="generation">
       	    <operator>
              <key>Extract Gender</key>
+             <name>Extract Gender</name>
              <class>com.namsor.api.rapidminer.ExtractGenderOperator</class>
 			 <icon>objects_transform.png</icon>
              <replaces>Extract Gender</replaces>
             </operator>
             <operator>
              <key>Extract Origin</key>
+             <name>Extract Origin</name>
              <class>com.namsor.api.rapidminer.ExtractOriginOperator</class>
 			 <icon>objects_transform.png</icon>
              <replaces>Extract Origin</replaces>
+            </operator>
+            <operator>
+             <key>Parse Name</key>
+             <name>Parse Name</name>
+             <class>com.namsor.api.rapidminer.ParseNameOperator</class>
+			 <icon>objects_transform.png</icon>
+             <replaces>Parse Name</replaces>
             </operator>
            </group>
         </group>

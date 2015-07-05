@@ -6,20 +6,27 @@
 	<operatorHelp lang="en_EN">
 		<operator>
 			<name>Extract Gender</name>
-			<synopsis>GendRE Genderizer infers the gender from international
+			<synopsis>NamSor Gender API infers the gender from international
 				names.</synopsis>
 			<help>
 				This operator infers the gender from international names (male/female),
-				calling the GendRE API.
+				calling NamSor Gender API.
+				
 				Input: first_name, last_name and (optionally) a country (ISO2 code), a
 				batch_id.
 				Output: gender_scale [-1..0..+1=Female] and gender {Male,Female,Unknown}.
-				GendRE API can use both the first_name and last_name (ex. for Slavic
+				
+				NamSor Gender API can use both the first_name and last_name (ex. for Slavic
 				names, to deambiguate names like Andrea male in Italy, female in the
 				US, ...)
-				GendRE API is free to use with certain restrictions. Please also consider
-				our commercial offering, with additional support and features.
-				More info on http://namsor.com/api</help>
+				
+				NamSor Gender API is free to use without subscription with certain restrictions. 
+				
+				Please also consider our commercial offering, with additional support and features:
+				NamSor Gender API is available on NamSor https://api.namsor.com/ or Mashape https://www.mashape.com/namsor/
+
+				More info on http://www.namsor.com/
+				</help>
 
 			<tutorialProcesses>
 				<tutorialProcess
@@ -101,13 +108,34 @@
 				
 				The method for anthroponomical classification can be summarized as follow: judging from the name only and the publicly available list of all ~150k Olympic athletes since 1896 (and other similar lists of names), for which national team would the person most likely run? Here, the United-States are typically considered as a melting pot of other ‘cultural origins’: Ireland, Germany, etc. and not as a onomastic class on its own.
 				
-				This API is available exclusively on Mashape https://www.mashape.com/namsor/origin
+				This API requires an API Key. Get one from NamSor https://api.namsor.com/ or Mashape https://www.mashape.com/namsor/origin
 
-				More info on http://namsor.com/api
+				More info on http://www.namsor.com/
 			</help>
 			<tutorialProcesses>
 			</tutorialProcesses>
 		</operator>
+		<operator>
+			<name>Parse Name</name>
+			<synopsis>This operator will guess the likely structure of a personal name, based on the sociolinguistics of the name (language, culture).</synopsis>
+			<help>
+				NamSor Parse API will guess the likely structure of a personal name, based on the sociolinguistics of the name (language, culture). 
+				
+				It's possible to specify how list of names should be handled:
+				"nameFormatTip":"ORDER_FNLN" means that the order has to be firstName, lastName (the API will only choose where to split the name).
 
+				possible values:
+				ORDER_FNLN,  // firstName first
+				ORDER_LNFN,  // lastName first
+				ORDER_FNLN_OR_LNFN, // make best guess name by name
+				ORDER_FNLN_OR_LNFN_ALLSAME // make best guess and apply to ALL the names (if most names are FNLN, then ALL names will be considered FNLN)
+
+				This API requires an API Key. Get one from NamSor https://api.namsor.com/ or Mashape https://www.mashape.com/namsor/origin
+
+				More info on http://www.namsor.com/
+			</help>
+			<tutorialProcesses>
+			</tutorialProcesses>
+		</operator>
 	</operatorHelp>
 </p1:documents>
