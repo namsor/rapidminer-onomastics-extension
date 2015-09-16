@@ -248,7 +248,7 @@ public class ParseNameOperator extends Operator {
 			prefs.put(NamSorAPI.API_CHANNEL_SECRET, APIKey);
 			prefs.put(NamSorAPI.API_CHANNEL_USER, APIChannel);
 			// use Mashape API
-			throw new UserError(this, new ParseAPIException("Please, enter a NamSor APIKey (Mashape Key not yet supported for this operator)"), "APIKey");
+			throw new UserError(this, "namsor.apikey");
 			//api = new RegisteredParseAPIClient(APIKey);
 		} else if (APIKey != null && !APIKey.trim().equals(API_IS_FREE_VALUE)
 				&& APIChannel != null && !APIChannel.trim().isEmpty()
@@ -263,7 +263,7 @@ public class ParseNameOperator extends Operator {
 			// if (APIKey == null || APIKey.trim().isEmpty() ||
 			// APIKey.trim().equals(API_IS_FREE_VALUE) ) {
 			// API is required
-			throw new UserError(this, new OriginAPIException("Please, enter an APIKey"), "APIKey");
+			throw new UserError(this, "namsor.apikey");
 		}
 		// for progress monitoring
 		long startProcessing = System.currentTimeMillis();
@@ -347,14 +347,14 @@ public class ParseNameOperator extends Operator {
 					if (namesBuffer.size() >= BATCH_REQUEST_SIZE) {
 						// flush buffer
 						parse(api, namesBuffer, bufferMapping, batchIdDefault,
-								strAttribute, originScoreAttribute,parseNameTip_);
+								strAttribute, originScoreAttribute,parseNameTip_, countryDefault);
 					}
 				}
 			}
 		}
 		// final flush buffer
 		parse(api, namesBuffer, bufferMapping, batchIdDefault,
-								strAttribute, originScoreAttribute, parseNameTip_);
+								strAttribute, originScoreAttribute, parseNameTip_, countryDefault);
 		outputSet.deliver(exampleSet);
 	}
 
@@ -364,7 +364,7 @@ public class ParseNameOperator extends Operator {
 	private void parse(ParseAPI api, List<ParseResponse> namesBuffer,
 			Map<String, Example> bufferMapping, String batchId, 
 			Map<String, Attribute> strAttribute,
-			Attribute originScoreAttribute, String parseNameTip)
+			Attribute originScoreAttribute, String parseNameTip, String countryDefault)
 			throws UserError {
 		if (api.allowsBatchAPI()
 				&& namesBuffer.size() > MIN_NAMES_TO_USE_BATCH_API) {
@@ -375,6 +375,9 @@ public class ParseNameOperator extends Operator {
 			req.setNames(a2);
 			if( parseNameTip!=null) {
 				req.setNameFormatTip(parseNameTip);
+			}
+			if( countryDefault!=null && !countryDefault.isEmpty()) {
+				req.setCountryIso2Default(countryDefault);
 			}
 			try {
 				ParseBatchRequest resp = api.parseBatch(req);

@@ -56,5 +56,20 @@ public class ParseBatchRequest  implements Serializable {
         this.nameFormatTip = nameFormatTip;
     }
 
-    
+    private String countryIso2Default;
+
+    /**
+     * @return the countryIso2
+     */
+    @XmlElement
+    public String getCountryIso2Default() {
+        return countryIso2Default;
+    }
+
+    /**
+     * @param countryIso2 the countryIso2 to set
+     */
+    public void setCountryIso2Default(String countryIso2Default) {
+        this.countryIso2Default = countryIso2Default;
+    }    
 }

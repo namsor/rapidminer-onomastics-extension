@@ -289,7 +289,7 @@ public class ExtractOriginOperator extends Operator {
 			// if (APIKey == null || APIKey.trim().isEmpty() ||
 			// APIKey.trim().equals(API_IS_FREE_VALUE) ) {
 			// API is required
-			throw new UserError(this, new OriginAPIException("Please, enter an APIKey"), "APIKey");
+			throw new UserError(this, "namsor.apikey");
 		}
 		// for progress monitoring
 		long startProcessing = System.currentTimeMillis();

@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -160,6 +161,8 @@ public class PureParseAPIClient implements ParseAPI {
 					ParseBatchRequest.class);
 			return result;
 		} catch (Exception e) {
+			String json = gson.toJson(req);
+			Logger.getLogger(getClass().getName()).severe("Failed to parseBatch JSON=\n"+json);
 			throw new ParseAPIException(e);
 		}
 	}
