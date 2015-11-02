@@ -6,18 +6,7 @@ NamSor Applied Onomastics extension for RapidMiner, includes the following opera
 - Extract Gender
 - Extract Origin
 
-Read the full documentation (PDF) https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201511_NamSor_RapidMiner_Extension_v007.pdf?raw=true
-
-# Why should I register on NamSor?
-If you set an API Key in the Extract Gender operator, you'll have
-- higher performance & throughput (hundreds of names processed at a time)
-- full double precision
-- commercial support 
-
-Registration is required for Extract Origin operator.
-
-Get a Freemium API Key for Extract Gender and Extract Origin
-https://api.namsor.com/
+Read the full documentation (PDF) https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201507_NamSor_RapidMiner_Extension_v006.pdf?raw=true
 
 # About NamSor
 NamSor™  is a European vendor of Name Recognition Software. We offer specialized data mining to recognize the origin of personal names in any alphabet / language, with fine grain and high accuracy. 
@@ -54,13 +43,27 @@ NamSor Origin will guess the likely country of origin of a personal name, based 
 
 The method for anthroponomical classification can be summarized as follow: judging from the name only and the publicly available list of all ~150k Olympic athletes since 1896 (and other similar lists of names), for which national team would the person most likely run? Here, the United-States, Australia, etc. are typically considered as a melting pot of other ‘cultural origins’: Ireland, Germany, etc. and not as a onomastic class on its own.
 
+# Why should I register on NamSor?
+If you set an API Key in the Extract Gender operator, you'll have
+- higher performance & throughput (hundreds of names processed at a time)
+- full double precision
+- commercial support 
+
+Registration is required for Extract Origin operator.
+
+Get a Freemium API Key for Extract Gender and Extract Origin
+https://api.namsor.com/
+
 # NamSor API is also on Mashape
 
 Get a Freemium API Key for Extract Gender
-https://market.mashape.com/namsor/gendre-infer-gender-from-world-names
+https://www.mashape.com/namsor/gendre-infer-gender-from-world-names
 
 Get a Freemium API Key for Extract Origin
-https://market.mashape.com/namsor/origin
+https://www.mashape.com/namsor/origin
+
+# Getting Started
+Read the full documentation (PDF) https://github.com/namsor/rapidminer-onomastics-extension/blob/master/doc/201412_NamSor_RapidMiner_Extension_v005.pdf?raw=true
 
 # To contact us
 contact@namsor.com
