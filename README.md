@@ -31,6 +31,8 @@ http://www.namsor.com/
 If you are reading this tutorial, you probably have already installed RapidMiner and gained some experience by playing around with the enormous set of operators.
 At NamSor, we intend to deliver a set of operators for mining proper names in all geographies/alphabets/languages/cultures. 
 
+[![NamSor RapidMider Extension](http://img.youtube.com/vi/VWSZBxXd4OY/0.jpg)](http://www.youtube.com/watch?v=VWSZBxXd4OY "NamSor RapidMider Extension")
+
 # Extract Gender Operator
 NamSor Gender (formerly GendRE) predicts the likely gender of a personal name. Guessing the gender of name is not as simple as it seems:
 - Andrea is a male name in Italy, a female name in the US. Laurence is a female name in France and a male name in the UK or in the US
