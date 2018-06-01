@@ -31,6 +31,7 @@ http://www.namsor.com/
 If you are reading this tutorial, you probably have already installed RapidMiner and gained some experience by playing around with the enormous set of operators.
 At NamSor, we intend to deliver a set of operators for mining proper names in all geographies/alphabets/languages/cultures. 
 
+Click to view the demo video on Youtube:
 [![NamSor RapidMider Extension](http://img.youtube.com/vi/VWSZBxXd4OY/0.jpg)](http://www.youtube.com/watch?v=VWSZBxXd4OY "NamSor RapidMider Extension")
 
 # Extract Gender Operator
